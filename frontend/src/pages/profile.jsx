@@ -13,7 +13,6 @@ const Profile = () => {
   // To allow canceling, we keep a backup of the data
   const [backup, setBackup] = useState({ ...profile });
   const [errors, setErrors] = useState({});
-  const [saved, setSaved] = useState(false);
 
   const validate = () => {
     const newErrors = {};
@@ -30,7 +29,6 @@ const Profile = () => {
   };
 
   const handleChange = (e) => {
-    setSaved(false);
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
 
@@ -49,8 +47,7 @@ const Profile = () => {
     e.preventDefault();
     if (validate()) {
       setIsEditing(false);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      // Removed setSaved logic here
     }
   };
 

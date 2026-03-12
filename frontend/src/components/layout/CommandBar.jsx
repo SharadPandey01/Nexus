@@ -18,7 +18,7 @@ const CommandBar = () => {
             const result = await sendChat(input);
             setResponse(result);
             setInput('');
-        } catch (err) {
+        } catch {
             setResponse({ reply: 'Failed to reach Nexus Core. Please try again.', plan: [], agents_involved: [] });
         }
         setLoading(false);

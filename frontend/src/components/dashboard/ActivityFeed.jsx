@@ -36,7 +36,7 @@ const ActivityFeed = () => {
     }, []);
 
     // Live updates via WebSocket
-    const { lastMessage, isConnected } = useWebSocket('/ws/activity', {
+    const { isConnected } = useWebSocket('/ws/activity', {
         onMessage: (msg) => {
             if (msg.type === 'agent_activity' || msg.type === 'activity') {
                 const newItem = {

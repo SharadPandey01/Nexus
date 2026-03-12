@@ -62,7 +62,7 @@ const AgentActivity = () => {
              <div className="flex-1 overflow-y-auto custom-scrollbar font-mono text-[10px] text-gray-400 bg-black p-4 rounded border border-gray-800">
                {loading ? (
                  <div className="animate-pulse space-y-2">
-                   {[1,2,3,4,5,6].map(i => <div key={i} className="h-3 bg-gray-800 rounded" style={{width: `${50 + Math.random()*50}%`}} />)}
+                   {[1,2,3,4,5,6].map(i => <div key={i} className="h-3 bg-gray-800 rounded" style={{width: `${50 + (i * 7)}%`}} />)}
                  </div>
                ) : (
                  <pre>{stateJson}</pre>

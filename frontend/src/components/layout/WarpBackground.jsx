@@ -7,7 +7,9 @@ const WarpStars = () => {
 
   const particleCount = 1000;
   
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const [positions, velocities] = useMemo(() => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const pos = new Float32Array(particleCount * 3);
     const vel = new Float32Array(particleCount);
     
@@ -21,7 +23,9 @@ const WarpStars = () => {
     }
     
     return [pos, vel];
-  }, [particleCount]);
+    // We intentionally only want this to run once to generate the initial random state
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useFrame((state, delta) => {
     if (!pointsRef.current) return;
