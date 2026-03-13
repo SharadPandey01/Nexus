@@ -16,6 +16,8 @@ const Schedule = lazy(() => import('./components/schedule/ScheduleView'));
 const MailCenter = lazy(() => import('./components/mail/MailCenter'));
 const ContentStudio = lazy(() => import('./components/content/ContentStudio'));
 const Activity = lazy(() => import('./components/activity/AgentActivity'));
+const ApprovalsHub = lazy(() => import('./pages/ApprovalsHub')); 
+const FinanceDashboard = lazy(() => import('./pages/FinanceDashboard')); // NEW ROUTE
 
 const App = () => {
   return (
@@ -38,8 +40,9 @@ const App = () => {
                     <Route path="mail" element={<MailCenter />} />
                     <Route path="content" element={<ContentStudio />} />
                     <Route path="activity" element={<Activity />} />
+                    <Route path="approvals" element={<ApprovalsHub />} /> 
+                    <Route path="finance" element={<FinanceDashboard />} /> 
                     <Route path="newEvent" element={<NewEvent />} />
-                    {/* <Route path="pastEvents" element={<PastEvents />} /> */}
                     <Route path="Profile" element={<Profile />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>

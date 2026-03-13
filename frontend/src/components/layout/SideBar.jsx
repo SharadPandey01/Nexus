@@ -7,7 +7,8 @@ import {
     ChevronLeft,
     Menu,
     LogOut,
-    User
+    User,
+    Briefcase
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -24,6 +25,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { path: '/dashboard/newEvent', icon: FaPlusIcon, label: 'New Event' },
         { path: '/dashboard/schedule', icon: Calendar, label: 'Schedule' },
+        { path: '/dashboard/finance', icon: Briefcase, label: 'Finance' },
         { path: '/dashboard/activity', icon: Activity, label: 'Agent Activity' },
     ];
 
