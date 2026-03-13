@@ -17,6 +17,7 @@
 
 import uuid
 import os
+from typing import Optional
 from datetime import datetime
 from fastapi import APIRouter, UploadFile, File, HTTPException
 
@@ -161,3 +162,53 @@ async def upload_participants(file: UploadFile = File(...)):
         },
         "participants": parsed["participants"][:5],  # Preview first 5
     }
+
+
+# ============================================================================
+# GET /api/participants — Get all participants
+# ============================================================================
+
+@router.get("/participants")
+async def get_participants(event_id: Optional[str] = None):
+    """
+    Get the list of all uploaded participants for an event.
+    """
+    # Try in-memory state first
+    participants = state_manager.get_participants()
+    if participants:
+        return {
+            "status": "success",
+            "participants": participants,
+            "total": len(participants),
+        }
+
+    # Fall back to database
+    try:
+        from app.database import get_db
+        db = await get_db()
+        
+        query = "SELECT * FROM participants"
+        params = []
+        
+        if event_id:
+            query += " WHERE event_id = ?"
+            params.append(event_id)
+            
+        query += " ORDER BY created_at DESC"
+            
+        cursor = await db.execute(query, tuple(params))
+        rows = await cursor.fetchall()
+        participants_list = [dict(row) for row in rows]
+
+        return {
+            "status": "success",
+            "participants": participants_list,
+            "total": len(participants_list),
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "participants": [],
+            "total": 0,
+            "error": str(e)
+        }
