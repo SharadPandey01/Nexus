@@ -93,7 +93,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 {isOpen && (
                     <div className="flex flex-col">
                         <h1 className="text-2xl font-black text-white tracking-tighter">NEXUS</h1>
-                        <p className="text-[10px] text-primary font-bold tracking-[0.3em] uppercase opacity-80">Command</p>
                     </div>
                 )}
 
