@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Paperclip, Mic, Send, X, FileText, 
-  Calendar, Mail, PenTool, Lightbulb, Wallet 
+import {
+  Paperclip, Mic, Send, X, FileText,
+  Calendar, Mail, PenTool, BarChart, Wallet
 } from 'lucide-react';
 
 const NewEvent = () => {
@@ -13,42 +13,43 @@ const NewEvent = () => {
   const fileInputRef = useRef(null);
 
   const agents = [
-    { 
-      name: 'Scheduler', 
-      icon: Calendar, 
-      path: '/dashboard/schedule', 
+    {
+      name: 'Schedule',
+      persona: 'Chronos',
+      icon: Calendar,
+      path: '/dashboard/schedule',
       color: 'text-emerald-400',
       glow: "group-hover:shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]",
       flare: "from-emerald-500/20"
     },
-    { 
-      name: 'Mailing', 
-      icon: Mail, 
-      path: '/dashboard/mail', 
+    {
+      name: 'Mailing',
+      icon: Mail,
+      path: '/dashboard/mail',
       color: 'text-blue-400',
       glow: "group-hover:shadow-[0_0_40px_-10px_rgba(59,130,246,0.5)]",
       flare: "from-blue-500/20"
     },
-    { 
-      name: 'Content', 
-      icon: PenTool, 
-      path: '/dashboard/content', 
+    {
+      name: 'Content',
+      icon: PenTool,
+      path: '/dashboard/content',
       color: 'text-purple-400',
       glow: "group-hover:shadow-[0_0_40px_-10px_rgba(168,85,247,0.5)]",
       flare: "from-purple-500/20"
     },
-    { 
-      name: 'Strategist', 
-      icon: Lightbulb, 
-      path: '/dashboard/strategy', 
+    {
+      name: 'Analytics',
+      icon: BarChart,
+      path: '/dashboard/analytics',
       color: 'text-amber-400',
       glow: "group-hover:shadow-[0_0_40px_-10px_rgba(251,191,36,0.5)]",
       flare: "from-amber-500/20"
     },
-    { 
-      name: 'Budget', 
-      icon: Wallet, 
-      path: '/dashboard/budget', 
+    {
+      name: 'Budget',
+      icon: Wallet,
+      path: '/dashboard/finance',
       color: 'text-rose-400',
       glow: "group-hover:shadow-[0_0_40px_-10px_rgba(244,63,94,0.5)]",
       flare: "from-rose-500/20"
@@ -70,7 +71,7 @@ const NewEvent = () => {
 
   return (
     <div className="min-h-screen bg-[#020202] flex flex-col items-center justify-center max-w-7xl mx-auto p-6 space-y-16">
-      
+
       {/* 1. Centered Prompt Section */}
       <div className="w-full max-w-3xl space-y-8 relative z-10 animate-fade-up">
         <header className="text-center space-y-4">
@@ -99,7 +100,7 @@ const NewEvent = () => {
         <div className="relative group">
           {/* Outer glow for prompt box */}
           <div className="absolute inset-0 bg-blue-500/5 blur-3xl group-focus-within:bg-blue-500/15 transition-all duration-700" />
-          
+
           <div className="relative bg-gradient-to-br from-white/[0.08] to-transparent backdrop-blur-2xl border border-white/[0.1] rounded-3xl shadow-2xl overflow-hidden group-focus-within:border-white/[0.2] transition-all">
             <textarea
               value={prompt}
@@ -107,18 +108,18 @@ const NewEvent = () => {
               placeholder="Describe the event you want to organize..."
               className="w-full h-40 bg-transparent p-6 text-white placeholder:text-slate-500 focus:outline-none resize-none text-lg font-light"
             />
-            
+
             <div className="flex items-center justify-between p-4 bg-white/[0.02] border-t border-white/[0.05]">
               <div className="flex items-center gap-3">
-                <button 
+                <button
                   onClick={() => fileInputRef.current.click()}
                   className="p-2.5 text-slate-400 hover:text-white hover:bg-white/[0.08] rounded-xl transition-all"
                 >
                   <Paperclip size={22} />
                 </button>
                 <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" multiple />
-                
-                <button 
+
+                <button
                   onClick={toggleVoice}
                   className={`p-2.5 rounded-xl transition-all ${isListening ? 'text-red-400 bg-red-400/10 animate-pulse' : 'text-slate-400 hover:text-white hover:bg-white/[0.08]'}`}
                 >
@@ -140,7 +141,7 @@ const NewEvent = () => {
         <h3 className="text-white/40 text-xs font-black uppercase tracking-[0.3em] text-center">
           Active Autonomous Agents
         </h3>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
           {agents.map((agent, i) => (
             <button
@@ -167,7 +168,7 @@ const NewEvent = () => {
               <h4 className="text-xl font-bold text-white mb-1">
                 {agent.name}
               </h4>
-              
+
               <div className={`text-[10px] font-black ${agent.color} uppercase tracking-widest`}>
                 Agent Active
               </div>

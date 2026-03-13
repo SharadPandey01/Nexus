@@ -8,7 +8,8 @@ import {
     Menu,
     LogOut,
     User,
-    Briefcase
+    Briefcase,
+    BrainCircuit
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -26,6 +27,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         { path: '/dashboard/newEvent', icon: FaPlusIcon, label: 'New Event' },
         { path: '/dashboard/schedule', icon: Calendar, label: 'Schedule' },
         { path: '/dashboard/finance', icon: Briefcase, label: 'Finance' },
+        { path: '/dashboard/athena', icon: BrainCircuit, label: 'Analytics' },
         { path: '/dashboard/activity', icon: Activity, label: 'Agent Activity' },
     ];
 
@@ -116,8 +118,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                             to={item.path}
                             end={item.path === "/dashboard"}
                             className={({ isActive }) => `flex items-center rounded-xl transition-all duration-200 group ${isActive
-                                    ? 'bg-primary/10 text-primary border border-primary/20 shadow-[0_0_15px_-5px_rgba(var(--primary-rgb),0.4)]'
-                                    : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                                ? 'bg-primary/10 text-primary border border-primary/20 shadow-[0_0_15px_-5px_rgba(var(--primary-rgb),0.4)]'
+                                : 'text-slate-400 hover:bg-white/5 hover:text-white'
                                 } ${isOpen ? 'px-4 py-3 space-x-4' : 'px-0 py-4 justify-center'}`}
                         >
                             <Icon size={20} className="transition-transform group-hover:scale-110" />
@@ -162,8 +164,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 <NavLink
                     to="/dashboard/Profile"
                     className={({ isActive }) => `flex items-center rounded-xl transition-all duration-200 group ${isActive
-                            ? 'bg-primary/10 text-primary border border-primary/20 shadow-[0_0_15px_-5px_rgba(var(--primary-rgb),0.4)]'
-                            : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                        ? 'bg-primary/10 text-primary border border-primary/20 shadow-[0_0_15px_-5px_rgba(var(--primary-rgb),0.4)]'
+                        : 'text-slate-400 hover:bg-white/5 hover:text-white'
                         } ${isOpen ? 'px-4 py-3 space-x-4' : 'px-0 py-4 justify-center'}`}
                 >
                     <User size={20} className="transition-transform group-hover:scale-110" />

@@ -17,7 +17,9 @@ const MailCenter = lazy(() => import('./components/mail/MailCenter'));
 const ContentStudio = lazy(() => import('./components/content/ContentStudio'));
 const Activity = lazy(() => import('./components/activity/AgentActivity'));
 const ApprovalsHub = lazy(() => import('./pages/ApprovalsHub')); 
-const FinanceDashboard = lazy(() => import('./pages/FinanceDashboard')); // NEW ROUTE
+const FinanceDashboard = lazy(() => import('./pages/FinanceDashboard'));
+const AnalyticsDashboard = lazy(() => import('./pages/AnalyticsDashboard'));
+const AthenaConsole = lazy(() => import('./pages/AthenaConsole'));
 
 const App = () => {
   return (
@@ -42,6 +44,8 @@ const App = () => {
                     <Route path="activity" element={<Activity />} />
                     <Route path="approvals" element={<ApprovalsHub />} /> 
                     <Route path="finance" element={<FinanceDashboard />} /> 
+                    <Route path="analytics" element={<AnalyticsDashboard />} />
+                    <Route path="athena" element={<AthenaConsole />} />
                     <Route path="newEvent" element={<NewEvent />} />
                     <Route path="Profile" element={<Profile />} />
                     <Route path="*" element={<NotFound />} />
