@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Search, Bell, User, Send, Loader2, Cpu } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { sendChat } from '../../services/api';
 
 const CommandBar = () => {
@@ -75,7 +76,7 @@ const CommandBar = () => {
                         <Bell size={20} />
                         <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full animate-pulse"></span>
                     </button>
-                    <div className="flex items-center space-x-3 pl-4 border-l border-white/10">
+                    <Link to="/dashboard/Profile" className="flex items-center space-x-3 pl-4 border-l border-white/10 hover:opacity-80 transition-opacity">
                         <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold border border-primary/30">
                             YO
                         </div>
@@ -83,7 +84,7 @@ const CommandBar = () => {
                             <div className="text-sm font-medium">Event Organizer</div>
                             <div className="text-xs text-text-secondary">Admin</div>
                         </div>
-                    </div>
+                    </Link>
                 </div>
             </header>
 
