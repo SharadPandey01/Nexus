@@ -34,12 +34,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   };
 
   const [agentStatus, setAgentStatus] = useState([
-    { name: 'Chronos', role: 'Scheduler', status: 'Idle', color: 'text-gray-400', glow: 'shadow-gray-500/50' },
-    { name: 'Hermes', role: 'Mailer', status: 'Idle', color: 'text-gray-400', glow: 'shadow-gray-500/50' },
-    { name: 'Apollo', role: 'Content', status: 'Idle', color: 'text-gray-400', glow: 'shadow-gray-500/50' },
-    { name: 'Athena', role: 'Analytics', status: 'Idle', color: 'text-gray-400', glow: 'shadow-gray-500/50' },
-    { name: 'Nexus Core', role: 'Coordinator', status: 'Idle', color: 'text-gray-400', glow: 'shadow-gray-500/50' },
-    { name: 'Fortuna', role: 'Budget', status: 'Idle', color: 'text-gray-400', glow: 'shadow-gray-500/50' },
+    { name: 'Chronos', role: 'Scheduler', status: 'Idle', color: 'text-gray-400', glow: 'shadow-grey-500/50' },
+    { name: 'Hermes', role: 'Mailer', status: 'Idle', color: 'text-gray-400', glow: 'shadow-white-500/50' },
+    { name: 'Apollo', role: 'Content', status: 'Idle', color: 'text-gray-400', glow: 'shadow-white-500/50' },
+    { name: 'Athena', role: 'Analytics', status: 'Idle', color: 'text-gray-400', glow: 'shadow-emerald-500/50' },
+    { name: 'Nexus Core', role: 'Coordinator', status: 'Idle', color: 'text-gray-400', glow: 'shadow-primary/50' },
+    { name: 'Fortuna', role: 'Budget', status: 'Idle', color: 'text-gray-400', glow: 'shadow-warning/50' },
   ]);
 
   useEffect(() => {
