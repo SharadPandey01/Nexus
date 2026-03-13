@@ -113,6 +113,26 @@
   .animate-panel-in {
     animation: panelSlideIn 0.25s ease-out both;
   }
+
+  /* --- athena page animations --- */
+  @keyframes athenaPulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+
+  .animate-athena-pulse {
+    animation: athenaPulse 2s infinite;
+  }
+
+  @keyframes cascadeIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .animate-cascade-in {
+    animation: cascadeIn 0.4s ease-out both;
+  }
 }
 
 /* Reduced-motion fallback: ensure elements are visible */
