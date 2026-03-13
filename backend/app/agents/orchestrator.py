@@ -31,15 +31,15 @@ from datetime import datetime
 from langgraph.graph import StateGraph, END
 
 # Import mock agent stubs (will be replaced with real LLM agents)
-from app.agents.stubs import (
-    mailer_agent_stub,
-    analytics_agent_stub,
-    fortuna_agent_stub,
-)
+# Stubs module kept for reference — all agents now have real implementations
+# from app.agents.stubs import ...
 
-# Real LLM-powered agents (replace stubs)
+# Real LLM-powered agents (all stubs replaced)
 from app.agents.apollo import apollo_agent
 from app.agents.chronos import chronos_agent
+from app.agents.hermes import hermes_agent
+from app.agents.athena import athena_agent
+from app.agents.fortuna import fortuna_agent
 
 # Import WebSocket manager for real-time streaming
 from app.api.websocket import manager as ws_manager
@@ -273,7 +273,7 @@ async def hermes_node(state: NexusState) -> dict:
     state_manager.update_agent_status("hermes", "working", "Processing mail request")
 
     try:
-        result = await mailer_agent_stub(state)
+        result = await hermes_agent(state)
         await ws_manager.send_agent_complete("hermes", result.get("mailer_output", {}))
         state_manager.update_agent_status("hermes", "done", "Mail processing complete")
 
@@ -321,7 +321,7 @@ async def athena_node(state: NexusState) -> dict:
     state_manager.update_agent_status("athena", "working", "Analyzing data")
 
     try:
-        result = await analytics_agent_stub(state)
+        result = await athena_agent(state)
         await ws_manager.send_agent_complete("athena", result.get("analytics_output", {}))
         state_manager.update_agent_status("athena", "done", "Analysis complete")
 
@@ -345,7 +345,7 @@ async def fortuna_node(state: NexusState) -> dict:
     state_manager.update_agent_status("fortuna", "working", "Analyzing budget and sponsors")
 
     try:
-        result = await fortuna_agent_stub(state)
+        result = await fortuna_agent(state)
         await ws_manager.send_agent_complete("fortuna", result.get("finance_output", {}))
         state_manager.update_agent_status("fortuna", "done", "Financial analysis complete")
 
