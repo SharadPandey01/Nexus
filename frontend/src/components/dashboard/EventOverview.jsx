@@ -47,11 +47,11 @@ const EventOverview = () => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {stats.map((s) => (
-                    <div key={s.label} className="p-4 bg-black/40 rounded-lg border border-white/10 hover:border-white/20 transition-colors shadow-inner">
+                {stats.map((s, i) => (
+                    <div key={s.label} className="p-4 bg-black/40 rounded-lg border border-white/10 hover:border-white/20 transition-colors shadow-inner animate-fade-up" style={{ animationDelay: `${i * 80}ms` }}>
                         <div className="text-text-secondary text-xs font-semibold uppercase tracking-wider mb-2">{s.label}</div>
                         <div className="text-2xl font-bold text-white flex items-end">
-                            {loading ? <span className="animate-pulse bg-white/10 rounded w-12 h-8 inline-block" /> : s.value}
+                            {loading ? <span className="skeleton w-12 h-8 inline-block" /> : s.value}
                             <span className="text-sm text-gray-500 font-normal ml-2">{s.sub}</span>
                         </div>
                     </div>

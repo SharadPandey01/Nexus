@@ -27,3 +27,101 @@
   }
 }
 
+/* ===== MICRO-ANIMATION INFRASTRUCTURE ===== */
+
+@media (prefers-reduced-motion: no-preference) {
+
+  /* --- fadeUp entry animation --- */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-fade-up {
+    animation: fadeUp 0.4s ease both;
+  }
+
+  /* --- shimmer skeleton loader --- */
+  @keyframes shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position:  400px 0; }
+  }
+
+  .skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.4s infinite linear;
+    border-radius: 0.5rem;
+  }
+
+  /* --- global button / link hover lift --- */
+  button,
+  a {
+    transition: transform 0.15s ease, box-shadow 0.15s ease, color 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.2s;
+  }
+
+  button:hover,
+  a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+
+  button:active,
+  a:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  /* Opt-out for nav links, sidebar items, and icon-only buttons */
+  nav a:hover,
+  aside a:hover,
+  aside button:hover,
+  header a:hover,
+  input:hover,
+  textarea:hover,
+  select:hover,
+  [data-no-lift]:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  nav a:active,
+  aside a:active,
+  aside button:active,
+  header a:active,
+  [data-no-lift]:active {
+    transform: none;
+  }
+
+  /* --- scroll-triggered reveal --- */
+  .scroll-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .scroll-reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* --- panel slide-in --- */
+  @keyframes panelSlideIn {
+    from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .animate-panel-in {
+    animation: panelSlideIn 0.25s ease-out both;
+  }
+}
+
+/* Reduced-motion fallback: ensure elements are visible */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+

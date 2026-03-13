@@ -51,10 +51,10 @@ const PendingApprovals = () => {
         {loading ? (
           <div className="space-y-3">
             {[1,2].map(i => (
-              <div key={i} className="animate-pulse border border-gray-800 rounded-lg p-4 bg-background">
-                <div className="h-4 bg-gray-700 rounded w-1/2 mb-3" />
-                <div className="h-12 bg-gray-700 rounded mb-3" />
-                <div className="flex gap-2"><div className="flex-1 h-8 bg-gray-700 rounded" /><div className="flex-1 h-8 bg-gray-700 rounded" /></div>
+              <div key={i} className="border border-white/5 rounded-lg p-4">
+                <div className="skeleton h-4 w-1/2 mb-3" />
+                <div className="skeleton h-12 mb-3" />
+                <div className="flex gap-2"><div className="flex-1 skeleton h-8" /><div className="flex-1 skeleton h-8" /></div>
               </div>
             ))}
           </div>

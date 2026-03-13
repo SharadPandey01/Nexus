@@ -65,7 +65,7 @@ const Profile = () => {
           <p className="text-slate-500 font-light tracking-wide text-sm uppercase">Swarm Operator Identity</p>
         </header>
 
-        <div className="relative group">
+        <div className="relative group animate-fade-up" style={{ animationDelay: '80ms' }}>
           <div className="absolute inset-0 bg-blue-500/5 blur-3xl -z-10" />
 
           <div className="relative bg-gradient-to-br from-white/[0.08] to-transparent backdrop-blur-2xl border border-white/[0.1] rounded-3xl p-8 shadow-2xl overflow-hidden">

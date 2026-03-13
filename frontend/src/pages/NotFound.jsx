@@ -11,7 +11,7 @@ const NotFound = () => {
       <div className="relative z-10 flex flex-col items-center text-center space-y-8">
 
         {/* Icon */}
-        <div className="relative">
+        <div className="relative animate-fade-up">
           <div className="absolute inset-0 rounded-full bg-warning/20 blur-xl animate-pulse" />
           <div className="relative p-6 bg-warning/10 border border-warning/20 rounded-full">
             <ShieldAlert className="h-16 w-16 text-warning" />
@@ -19,7 +19,7 @@ const NotFound = () => {
         </div>
 
         {/* 404 Title */}
-        <div className="space-y-3">
+        <div className="space-y-3 animate-fade-up" style={{ animationDelay: '80ms' }}>
           <h1 className="text-6xl font-black text-white tracking-tight">
             404
           </h1>
@@ -44,7 +44,8 @@ const NotFound = () => {
           border border-primary/20 rounded-lg
           hover:bg-primary/40 hover:text-white
           hover:border-primary/50
-          transition-all duration-200"
+          transition-all duration-200 animate-fade-up"
+          style={{ animationDelay: '160ms' }}
         >
           <ArrowLeft size={18} />
           Return to Dashboard

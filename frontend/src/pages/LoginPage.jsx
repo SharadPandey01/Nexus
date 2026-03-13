@@ -26,7 +26,7 @@ const LoginPage = () => {
     <div className="min-h-screen bg-black bg-light-streaks flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
 
       <div className="w-full max-w-md relative z-10">
-        <div className="text-center mb-10">
+        <div className="text-center mb-10 animate-fade-up">
             <Link to="/" className="inline-flex items-center justify-center w-16 h-16 rounded-2xl glass-card border border-white/10 mb-6 shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:scale-105 transition-transform">
               <Bot className="w-8 h-8 text-white" />
             </Link>
@@ -34,7 +34,7 @@ const LoginPage = () => {
             <p className="text-text-secondary">Authenticate to access the Nexus Command Center</p>
         </div>
 
-        <div className="glass-card p-8">
+        <div className="glass-card p-8 animate-fade-up" style={{ animationDelay: '80ms' }}>
           <form onSubmit={handleLogin} className="space-y-6">
             
             <div className="space-y-2">

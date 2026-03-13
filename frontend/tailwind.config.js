@@ -27,12 +27,22 @@ export default {
       animation: {
         'spin-slow': 'spin 8s linear infinite',
         'reverse-spin': 'reverse-spin 10s linear infinite',
+        'fade-up': 'fadeUp 0.4s ease both',
+        'shimmer': 'shimmer 1.4s infinite linear',
       },
       keyframes: {
         'reverse-spin': {
           from: { transform: 'rotate(360deg)' },
           to: { transform: 'rotate(0deg)' },
-        }
+        },
+        fadeUp: {
+          from: { opacity: '0', transform: 'translateY(16px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-400px 0' },
+          '100%': { backgroundPosition: '400px 0' },
+        },
       }
     },
   },

@@ -90,7 +90,7 @@ const CommandBar = () => {
 
             {/* Nexus Core Response Panel */}
             {showPanel && response && (
-                <div className="border-b border-primary/30 bg-primary/5 px-6 py-4 backdrop-blur-sm relative z-10">
+                <div className="border-b border-primary/30 bg-primary/5 px-6 py-4 backdrop-blur-sm relative z-10 animate-panel-in">
                     <div className="max-w-4xl mx-auto">
                         <div className="flex items-start gap-3">
                             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-0.5">

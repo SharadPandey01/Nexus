@@ -1,6 +1,7 @@
 import { Link, Navigate } from "react-router-dom";
 import { Bot, CalendarDays, Mail, Zap, ChevronRight, ShieldCheck, Activity } from 'lucide-react';
 import { WarpBackground } from '../components/layout/WarpBackground';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 
 
 /* ---------------- LANDING PAGE ---------------- */
@@ -9,6 +10,12 @@ const LandingPage = () => {
   if (localStorage.getItem("isLoggedIn") === "true") {
     return <Navigate to="/dashboard" replace />;
   }
+
+  const statsRef = useScrollReveal();
+  const featuresRef = useScrollReveal();
+  const orchestrationRef = useScrollReveal();
+  const timelineRef = useScrollReveal();
+  const footerRef = useScrollReveal();
 
   return (
     <div className="min-h-screen bg-black bg-light-streaks text-text-primary font-sans overflow-x-hidden selection:bg-primary/30">
@@ -58,7 +65,7 @@ const LandingPage = () => {
         </div>
 
         {/* Hero Content */}
-        <div className="max-w-5xl mx-auto text-center relative z-10">
+        <div className="max-w-5xl mx-auto text-center relative z-10 animate-fade-up">
           <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-8 leading-tight drop-shadow-lg">
             AI-Powered <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">
@@ -76,7 +83,7 @@ const LandingPage = () => {
 
       {/* ---------------- STATS ---------------- */}
 
-      <section className="border-y border-white/10 glass-card !rounded-none !shadow-none !border-x-0 relative z-10">
+      <section ref={statsRef} className="border-y border-white/10 glass-card !rounded-none !shadow-none !border-x-0 relative z-10">
         <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
@@ -85,7 +92,7 @@ const LandingPage = () => {
               { label: "Uptime Guaranteed", value: "99.9%" },
               { label: "System Latency", value: "<1s" },
             ].map((stat, i) => (
-              <div key={i} className="text-center">
+              <div key={i} className="text-center animate-fade-up" style={{ animationDelay: `${i * 80}ms` }}>
                 <div className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-2">
                   {stat.value}
                 </div>
@@ -101,7 +108,7 @@ const LandingPage = () => {
       {/* ---------------- FEATURES ---------------- */}
 
 
-      <section className="py-24 px-6 relative z-10 bg-[#020202]"> 
+      <section ref={featuresRef} className="py-24 px-6 relative z-10 bg-[#020202]"> 
   <div className="max-w-7xl mx-auto flex flex-col items-center">
     <h2 className="text-3xl md:text-4xl font-bold text-white mb-16 text-center tracking-tight">
       Meet Your Autonomous Swarm
@@ -143,7 +150,8 @@ const LandingPage = () => {
             hover:-translate-y-3 cursor-default
             bg-gradient-to-br from-white/[0.08] to-transparent
             backdrop-blur-2xl border border-white/[0.1]
-            hover:border-white/[0.2] ${agent.glow} overflow-hidden`}
+            hover:border-white/[0.2] ${agent.glow} overflow-hidden animate-fade-up`}
+          style={{ animationDelay: `${i * 100}ms` }}
         >
           {/* THE GLOW FLARE: A hidden radial gradient that activates on hover */}
           <div className={`absolute -inset-px bg-gradient-to-br ${agent.flare} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10`} />
@@ -179,7 +187,7 @@ const LandingPage = () => {
 
       {/* ---------------- ORCHESTRATION VISUAL ---------------- */}
 
-<section className="py-24 px-6 relative z-10 bg-[#020202] overflow-hidden">
+<section ref={orchestrationRef} className="py-24 px-6 relative z-10 bg-[#020202] overflow-hidden">
   <div className="max-w-7xl mx-auto">
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
       <div>
@@ -242,7 +250,7 @@ const LandingPage = () => {
 
 {/* ---------------- WORKFLOW TIMELINE ---------------- */}
 
-<section className="py-24 px-6 relative z-10">
+<section ref={timelineRef} className="py-24 px-6 relative z-10">
   <div className="max-w-4xl mx-auto text-center mb-16">
     <h2 className="text-3xl font-bold text-white mb-4">The Automated Path</h2>
     <p className="text-text-secondary">From inception to execution in four autonomous steps.</p>
@@ -259,7 +267,7 @@ const LandingPage = () => {
         { step: "03", title: "Content Synthesis", desc: "Agents generate social media assets, mailers, and registration forms in parallel." },
         { step: "04", title: "Execution & Monitoring", desc: "Athena tracks real-time engagement and adjusts strategies on the fly." },
       ].map((item, i) => (
-        <div key={i} className={`flex flex-col md:flex-row items-center gap-8 ${i % 2 !== 0 ? 'md:flex-row-reverse' : ''}`}>
+        <div key={i} className={`flex flex-col md:flex-row items-center gap-8 ${i % 2 !== 0 ? 'md:flex-row-reverse' : ''} animate-fade-up`} style={{ animationDelay: `${i * 100}ms` }}>
           <div className="flex-1 md:text-right">
              <div className={`${i % 2 !== 0 ? 'md:text-left' : 'md:text-right'}`}>
                 <h4 className="text-white font-bold text-xl mb-2">{item.title}</h4>
@@ -278,7 +286,7 @@ const LandingPage = () => {
 
       {/* ---------------- FOOTER ---------------- */}
 
-      <footer className="border-t border-white/10 py-12 px-6 relative z-10 bg-black/50">
+      <footer ref={footerRef} className="border-t border-white/10 py-12 px-6 relative z-10 bg-black/50">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
 
           <div className="flex items-center space-x-2 text-text-secondary">

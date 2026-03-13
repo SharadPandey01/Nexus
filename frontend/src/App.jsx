@@ -7,7 +7,7 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import NewEvent from './pages/newEvent';
-import PastEvents from './pages/pastEvents'
+// import PastEvents from './pages/pastEvents'
 import Profile from './pages/profile'
 
 // Lazy loaded pages
@@ -39,7 +39,7 @@ const App = () => {
                     <Route path="content" element={<ContentStudio />} />
                     <Route path="activity" element={<Activity />} />
                     <Route path="newEvent" element={<NewEvent />} />
-                    <Route path="pastEvents" element={<PastEvents />} />
+                    {/* <Route path="pastEvents" element={<PastEvents />} /> */}
                     <Route path="Profile" element={<Profile />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>

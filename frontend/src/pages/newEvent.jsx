@@ -72,7 +72,7 @@ const NewEvent = () => {
     <div className="min-h-screen bg-[#020202] flex flex-col items-center justify-center max-w-7xl mx-auto p-6 space-y-16">
       
       {/* 1. Centered Prompt Section */}
-      <div className="w-full max-w-3xl space-y-8 relative z-10">
+      <div className="w-full max-w-3xl space-y-8 relative z-10 animate-fade-up">
         <header className="text-center space-y-4">
           <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
             Organize a New Event
@@ -136,7 +136,7 @@ const NewEvent = () => {
       </div>
 
       {/* 2. Agent Cards Section */}
-      <div className="w-full space-y-8 relative z-10">
+      <div className="w-full space-y-8 relative z-10 animate-fade-up" style={{ animationDelay: '120ms' }}>
         <h3 className="text-white/40 text-xs font-black uppercase tracking-[0.3em] text-center">
           Active Autonomous Agents
         </h3>
@@ -150,7 +150,8 @@ const NewEvent = () => {
                 hover:-translate-y-2 text-left
                 bg-gradient-to-br from-white/[0.05] to-transparent
                 backdrop-blur-2xl border border-white/[0.1]
-                hover:border-white/[0.2] ${agent.glow} overflow-hidden`}
+                hover:border-white/[0.2] ${agent.glow} overflow-hidden animate-fade-up`}
+              style={{ animationDelay: `${200 + i * 80}ms` }}
             >
               {/* THE GLOW FLARE */}
               <div className={`absolute -inset-px bg-gradient-to-br ${agent.flare} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10`} />
