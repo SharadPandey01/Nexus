@@ -32,12 +32,14 @@ from langgraph.graph import StateGraph, END
 
 # Import mock agent stubs (will be replaced with real LLM agents)
 from app.agents.stubs import (
-    scheduler_agent_stub,
     mailer_agent_stub,
-    content_agent_stub,
     analytics_agent_stub,
     fortuna_agent_stub,
 )
+
+# Real LLM-powered agents (replace stubs)
+from app.agents.apollo import apollo_agent
+from app.agents.chronos import chronos_agent
 
 # Import WebSocket manager for real-time streaming
 from app.api.websocket import manager as ws_manager
@@ -244,7 +246,7 @@ async def chronos_node(state: NexusState) -> dict:
 
     try:
         # Call the agent (stub for now)
-        result = await scheduler_agent_stub(state)
+        result = await chronos_agent(state)
 
         # Notify frontend that Chronos is done
         await ws_manager.send_agent_complete("chronos", result.get("scheduler_output", {}))
@@ -295,7 +297,7 @@ async def apollo_node(state: NexusState) -> dict:
     state_manager.update_agent_status("apollo", "working", "Generating content")
 
     try:
-        result = await content_agent_stub(state)
+        result = await apollo_agent(state)
         await ws_manager.send_agent_complete("apollo", result.get("content_output", {}))
         state_manager.update_agent_status("apollo", "done", "Content generation complete")
 
