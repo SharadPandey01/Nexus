@@ -72,6 +72,14 @@ async def get_dashboard_data():
         "end_date": end_date
     }
 
+@router.get("/finance")
+async def get_finance_data():
+    """
+    Returns the cached financial overview from Fortuna without invoking the LLM.
+    """
+    data = state_manager.get_finance_data()
+    return {"status": "success", "finance_output": data}
+
 @router.get("/insights")
 async def get_insights_data():
     """
