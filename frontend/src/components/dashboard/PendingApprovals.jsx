@@ -85,7 +85,7 @@ const PendingApprovals = () => {
                   
                   <div className="bg-black/30 p-3 rounded-md mb-4 border border-white/10">
                     <p className="text-sm text-gray-300 font-serif italic text-ellipsis overflow-hidden whitespace-nowrap">
-                      "{item.preview_json || item.preview || 'No preview available'}"
+                      "{item.description || item.preview || 'No preview available'}"
                     </p>
                   </div>
                   

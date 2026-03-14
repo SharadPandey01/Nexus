@@ -37,44 +37,51 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     };
 
     const [agentStatus, setAgentStatus] = useState([
-        { name: 'Chronos', role: 'Scheduler', status: 'Idle', color: 'text-gray-400', glow: 'shadow-grey-500/50' },
-        { name: 'Hermes', role: 'Mailer', status: 'Idle', color: 'text-gray-400', glow: 'shadow-white-500/50' },
-        { name: 'Apollo', role: 'Content', status: 'Idle', color: 'text-gray-400', glow: 'shadow-white-500/50' },
-        { name: 'Athena', role: 'Analytics', status: 'Idle', color: 'text-gray-400', glow: 'shadow-emerald-500/50' },
-        { name: 'Nexus Core', role: 'Coordinator', status: 'Idle', color: 'text-gray-400', glow: 'shadow-primary/50' },
-        { name: 'Fortuna', role: 'Budget', status: 'Idle', color: 'text-gray-400', glow: 'shadow-warning/50' },
+        { name: 'Chronos', role: 'Scheduler', status: 'idle', color: 'text-blue-400', bg: 'bg-blue-400', indicator: 'bg-blue-400 opacity-40', statusLabel: 'Idle' },
+        { name: 'Hermes', role: 'Mailer', status: 'idle', color: 'text-purple-400', bg: 'bg-purple-400', indicator: 'bg-purple-400 opacity-40', statusLabel: 'Idle' },
+        { name: 'Apollo', role: 'Content', status: 'idle', color: 'text-orange-400', bg: 'bg-orange-400', indicator: 'bg-orange-400 opacity-40', statusLabel: 'Idle' },
+        { name: 'Athena', role: 'Analytics', status: 'idle', color: 'text-emerald-400', bg: 'bg-emerald-400', indicator: 'bg-emerald-400 opacity-40', statusLabel: 'Idle' },
+        { name: 'Fortuna', role: 'Budget', status: 'idle', color: 'text-warning', bg: 'bg-warning', indicator: 'bg-warning opacity-40', statusLabel: 'Idle' },
     ]);
 
     useEffect(() => {
         const fetchStatus = () => {
             getAgentStatus()
                 .then(data => {
-                    setAgentStatus(data.map(a => {
-                        const themeMap = {
-                            Chronos: { color: 'text-blue-400', bg: 'bg-blue-400' },
-                            Hermes: { color: 'text-purple-400', bg: 'bg-purple-400' },
-                            Apollo: { color: 'text-orange-400', bg: 'bg-orange-400' },
-                            Athena: { color: 'text-emerald-400', bg: 'bg-emerald-400' },
-                            'Nexus Core': { color: 'text-primary', bg: 'bg-primary' },
-                            Fortuna: { color: 'text-warning', bg: 'bg-warning' },
-                        };
+                    if (data?.status === 'success' && data.agents) {
+                        setAgentStatus(prev => prev.map(a => {
+                            const backendName = a.name === 'Nexus Core' ? 'system' : a.name.toLowerCase();
+                            const backendAgent = data.agents[backendName] || { status: 'idle' };
+                            const activeStatus = backendAgent.status || 'idle';
 
-                        const theme = themeMap[a.name] || { color: 'text-gray-400', bg: 'bg-gray-400' };
+                            const themeMap = {
+                                Chronos: { color: 'text-blue-400', bg: 'bg-blue-400' },
+                                Hermes: { color: 'text-purple-400', bg: 'bg-purple-400' },
+                                Apollo: { color: 'text-orange-400', bg: 'bg-orange-400' },
+                                Athena: { color: 'text-emerald-400', bg: 'bg-emerald-400' },
+                                'Nexus Core': { color: 'text-primary', bg: 'bg-primary' },
+                                Fortuna: { color: 'text-warning', bg: 'bg-warning' },
+                            };
 
-                        const stateStyles = {
-                            working: `animate-pulse ${theme.bg} shadow-[0_0_8px_rgba(255,255,255,0.8)]`,
-                            idle: `${theme.bg} opacity-40`,
-                            observing: `${theme.bg} opacity-100 shadow-lg`,
-                            planning: `animate-bounce ${theme.bg} scale-110`,
-                        };
+                            const theme = themeMap[a.name] || { color: 'text-gray-400', bg: 'bg-gray-400' };
 
-                        return {
-                            ...a,
-                            statusLabel: a.status.charAt(0).toUpperCase() + a.status.slice(1),
-                            color: theme.color,
-                            indicator: stateStyles[a.status] || stateStyles.idle
-                        };
-                    }));
+                            const stateStyles = {
+                                working: `animate-pulse ${theme.bg} shadow-[0_0_8px_rgba(255,255,255,0.8)]`,
+                                idle: `${theme.bg} opacity-40`,
+                                observing: `${theme.bg} opacity-100 shadow-lg`,
+                                planning: `animate-bounce ${theme.bg} scale-110`,
+                            };
+
+                            return {
+                                ...a,
+                                status: activeStatus,
+                                statusLabel: activeStatus.charAt(0).toUpperCase() + activeStatus.slice(1),
+                                color: theme.color,
+                                bg: theme.bg,
+                                indicator: stateStyles[activeStatus] || stateStyles.idle
+                            };
+                        }));
+                    }
                 })
                 .catch(() => { });
         };
@@ -134,13 +141,21 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                     {agentStatus.map(agent => (
                         <div key={agent.name} className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
-                                <div className={`w-2 h-2 rounded-full ${agent.indicator} transition-all duration-500`} />
+                                <div className="relative flex h-2 w-2">
+                                    {(agent.status === 'working' || agent.status === 'planning') && (
+                                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${agent.bg || 'bg-gray-400'} opacity-75`} />
+                                    )}
+                                    <span className={`relative inline-flex rounded-full h-2 w-2 ${agent.indicator || 'bg-gray-400 opacity-40'} transition-all duration-500`} />
+                                </div>
                                 <div className="flex flex-col">
                                     <span className={`text-xs font-bold ${agent.color}`}>
                                         {agent.name}
                                     </span>
-                                    <span className="text-[10px] text-slate-500 leading-none">
+                                    <span className="text-[10px] text-slate-500 leading-none mt-1 flex items-center">
                                         {agent.statusLabel || agent.status}
+                                        {(agent.status === 'working' || agent.status === 'planning') && (
+                                            <span className="ml-1 animate-pulse">...</span>
+                                        )}
                                     </span>
                                 </div>
                             </div>

@@ -115,7 +115,9 @@ const ApprovalsHub = () => {
                 
                 <h3 className="text-lg font-bold text-white mb-2 capitalize">{String(approval.action).replace(/_/g, ' ')}</h3>
                 <p className="text-gray-300 text-sm mb-4 leading-relaxed overflow-x-auto whitespace-pre-wrap">
-                  {typeof approval.description === 'object' ? JSON.stringify(approval.description, null, 2) : approval.description}
+                  {typeof approval.description === 'object' 
+                    ? (approval.description.text || approval.description.body || JSON.stringify(approval.description, null, 2)) 
+                    : approval.description}
                 </p>
 
                 <div className="bg-black/40 rounded border border-white/5 p-3 mb-4 flex items-start gap-2">
@@ -123,7 +125,9 @@ const ApprovalsHub = () => {
                   <div>
                     <span className="text-xs text-gray-400 font-semibold uppercase block mb-1">Predicted Impact</span>
                     <span className="text-sm text-gray-200 overflow-x-auto whitespace-pre-wrap">
-                      {typeof approval.impact === 'object' ? JSON.stringify(approval.impact, null, 2) : approval.impact}
+                      {typeof approval.impact === 'object' 
+                        ? (approval.impact.details || approval.impact.summary || JSON.stringify(approval.impact, null, 2)) 
+                        : approval.impact}
                     </span>
                   </div>
                 </div>

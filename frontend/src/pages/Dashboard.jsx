@@ -90,10 +90,6 @@ const Dashboard = () => {
             <FileDown size={16} />
             Export Brief
           </button>
-          <div className="text-sm text-text-secondary glass-card border-white/10 px-3 py-1.5 rounded-md flex items-center gap-2 shadow-inner shadow-black/20">
-            <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            <span>Live Mode: <span className="text-success font-medium">Connected</span></span>
-          </div>
         </div>
       </div>
 

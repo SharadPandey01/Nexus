@@ -135,6 +135,14 @@ async def get_sessions(event_id: str) -> List[dict]:
     return [dict(row) for row in await cursor.fetchall()]
 
 
+async def delete_sessions(event_id: str) -> None:
+    """Wipes all sessions for an event (used before inserting a newly optimized timeline)."""
+    db = await get_db()
+    await db.execute("DELETE FROM sessions WHERE event_id = ?", (event_id,))
+    await db.commit()
+
+
+
 # ============================================================================
 # CONTENT QUEUE
 # ============================================================================

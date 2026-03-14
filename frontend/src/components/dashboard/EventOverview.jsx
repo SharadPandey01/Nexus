@@ -39,10 +39,6 @@ const EventOverview = () => {
                         <MapPin size={14} className="mr-1" /> {data.venue}
                     </p>
                 </div>
-                <div className="flex items-center space-x-2 text-xs font-medium text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-                    <Loader2 size={12} className="animate-spin mr-1" />
-                    <span>{loading ? 'Loading...' : 'Event Active'}</span>
-                </div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

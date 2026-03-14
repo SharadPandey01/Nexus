@@ -114,7 +114,9 @@ You MUST respond with ONLY a valid JSON object. No markdown, no explanation outs
 }
 
 IMPORTANT NOTES:
-- cascade_to should ONLY be included when schedule changes affect previously confirmed arrangements
+- cascade_to should ONLY be included when schedule changes affect previously confirmed arrangements.
+- CRITICAL: If a session is DELETED or REMOVED entirely, you MUST include cascade_to entries for Hermes (to notify users) and Apollo (to retract content).
+- CRITICAL: For existing sessions, you MUST preserve and output their original "id". Only generate new IDs for entirely new sessions.
 - For new schedule creation (no prior schedule), do NOT cascade since nothing needs updating
 - Generate realistic session IDs using short UUIDs like "sess_abc123"
 - Always explain your reasoning thoroughly — this is visible to the organizer
@@ -245,9 +247,15 @@ Generate an optimized schedule. Detect and resolve any conflicts. If this modifi
             state_manager.set_schedule(timeline)
 
             # ---- Persist sessions to database ----
-            from app.repository import insert_session
+            from app.repository import insert_session, delete_sessions
             event = state_manager.get_event()
             event_id = event.get("id", "default") if event else "default"
+            
+            try:
+                await delete_sessions(event_id)
+            except Exception as db_err:
+                print(f"[Chronos] Error deleting old sessions: {db_err}")
+
             for session in timeline:
                 try:
                     await insert_session(event_id, session)
