@@ -6,7 +6,7 @@ import ActivityFeed from '../components/dashboard/ActivityFeed';
 import PendingApprovals from '../components/dashboard/PendingApprovals';
 import EventBriefModal from '../components/dashboard/EventBriefModal';
 import ErrorBoundary from '../components/common/ErrorBoundary';
-import { FileDown, Calendar, Mail, Feather, BarChart3, DollarSign, ArrowUpRight, Cpu } from 'lucide-react';
+import { FileDown, Calendar, Mail, Feather, BarChart3, DollarSign, Cpu } from 'lucide-react';
 import { getAgentStatus } from '../services/api';
 
 const agents = [
@@ -15,55 +15,45 @@ const agents = [
     role: 'Schedule Architect',
     icon: Calendar,
     path: '/dashboard/schedule',
-    gradient: 'from-blue-500/20 to-cyan-500/20',
-    border: 'border-blue-500/30',
-    glow: 'shadow-blue-500/10',
     iconColor: 'text-blue-400',
-    dotColor: 'bg-blue-400',
+    glow: 'group-hover:shadow-[0_0_40px_-10px_rgba(59,130,246,0.5)]',
+    flare: 'from-blue-500/20',
   },
   {
     name: 'Hermes',
     role: 'Mail & Outreach',
     icon: Mail,
     path: '/dashboard/mail',
-    gradient: 'from-emerald-500/20 to-teal-500/20',
-    border: 'border-emerald-500/30',
-    glow: 'shadow-emerald-500/10',
     iconColor: 'text-emerald-400',
-    dotColor: 'bg-emerald-400',
+    glow: 'group-hover:shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]',
+    flare: 'from-emerald-500/20',
   },
   {
     name: 'Apollo',
     role: 'Content Studio',
     icon: Feather,
     path: '/dashboard/content',
-    gradient: 'from-orange-500/20 to-amber-500/20',
-    border: 'border-orange-500/30',
-    glow: 'shadow-orange-500/10',
-    iconColor: 'text-orange-400',
-    dotColor: 'bg-orange-400',
+    iconColor: 'text-purple-400',
+    glow: 'group-hover:shadow-[0_0_40px_-10px_rgba(168,85,247,0.5)]',
+    flare: 'from-purple-500/20',
   },
   {
     name: 'Athena',
     role: 'Analytics Console',
     icon: BarChart3,
     path: '/dashboard/athena',
-    gradient: 'from-purple-500/20 to-violet-500/20',
-    border: 'border-purple-500/30',
-    glow: 'shadow-purple-500/10',
-    iconColor: 'text-purple-400',
-    dotColor: 'bg-purple-400',
+    iconColor: 'text-amber-400',
+    glow: 'group-hover:shadow-[0_0_40px_-10px_rgba(251,191,36,0.5)]',
+    flare: 'from-amber-500/20',
   },
   {
     name: 'Fortuna',
     role: 'Finance & Budget',
     icon: DollarSign,
     path: '/dashboard/finance',
-    gradient: 'from-amber-500/20 to-yellow-500/20',
-    border: 'border-amber-500/30',
-    glow: 'shadow-amber-500/10',
-    iconColor: 'text-amber-400',
-    dotColor: 'bg-amber-400',
+    iconColor: 'text-rose-400',
+    glow: 'group-hover:shadow-[0_0_40px_-10px_rgba(244,63,94,0.5)]',
+    flare: 'from-rose-500/20',
   },
 ];
 
@@ -72,7 +62,6 @@ const Dashboard = () => {
   const [agentStatuses, setAgentStatuses] = useState({});
 
   useEffect(() => {
-    // Poll agent status every 3 seconds
     const fetchStatus = () => {
       getAgentStatus()
         .then(res => {
@@ -82,7 +71,7 @@ const Dashboard = () => {
         })
         .catch(console.error);
     };
-    
+
     fetchStatus();
     const interval = setInterval(fetchStatus, 3000);
     return () => clearInterval(interval);
@@ -121,45 +110,47 @@ const Dashboard = () => {
           <Cpu size={16} className="text-primary" />
           <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">AI Swarm</h3>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
           {agents.map((agent, i) => {
             const Icon = agent.icon;
-            
-            // Map the agent name to the key returned by the API (usually lowercase)
+
             const agentKey = agent.name.toLowerCase();
             const data = (agentStatuses && agentStatuses[agentKey]) || { status: 'idle' };
             const isWorking = data.status === 'working';
-            
-            // Dynamic status ring
-            const statusColor = isWorking ? 'bg-error' : agent.dotColor;
-            const statusText = isWorking ? 'Working' : 'Idle';
-            const statusPulse = isWorking ? 'animate-pulse' : '';
-            
+
+            const statusLabel = isWorking ? 'Working…' : 'Idle';
+            const statusClass = isWorking ? 'animate-pulse' : 'opacity-50';
+
             return (
               <Link
                 key={agent.name}
                 to={agent.path}
-                className={`group relative bg-gradient-to-br ${agent.gradient} border ${isWorking ? 'border-error/40' : agent.border} rounded-xl p-4 hover:scale-[1.03] transition-all duration-200 shadow-lg ${agent.glow} overflow-hidden`}
-                style={{ animationDelay: `${i * 60}ms` }}
+                className={`group relative p-8 rounded-2xl transition-all duration-500
+                  hover:-translate-y-2 text-left
+                  bg-gradient-to-br from-white/[0.05] to-transparent
+                  backdrop-blur-2xl border border-white/[0.1]
+                  hover:border-white/[0.2] ${agent.glow} overflow-hidden`}
+                style={{ animationDelay: `${200 + i * 80}ms` }}
               >
-                {/* Subtle corner glow */}
-                <div className={`absolute -top-6 -right-6 w-16 h-16 rounded-full blur-2xl transition-colors ${isWorking ? 'bg-error/20' : 'bg-white/5 group-hover:bg-white/10'}`} />
+                {/* Glow flare */}
+                <div className={`absolute -inset-px bg-gradient-to-br ${agent.flare} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10`} />
 
-                <div className="flex items-start justify-between mb-3">
-                  <div className={`p-2 rounded-lg bg-black/30 border border-white/5 ${agent.iconColor}`}>
-                    <Icon size={18} />
-                  </div>
-                  <ArrowUpRight size={14} className="text-gray-600 group-hover:text-white transition-colors mt-1" />
+                {/* Icon */}
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6
+                  bg-white/[0.05] border border-white/[0.1]
+                  group-hover:scale-110 transition-transform duration-500"
+                >
+                  <Icon className={`w-6 h-6 ${agent.iconColor} filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]`} />
                 </div>
-                <div className="relative">
-                  <p className="text-sm font-bold text-white mb-0.5">{agent.name}</p>
-                  <p className="text-[10px] text-gray-400 font-medium">{agent.role}</p>
+
+                <h4 className="text-xl font-bold text-white mb-1">{agent.name}</h4>
+
+                <div className={`text-[10px] font-black uppercase tracking-widest ${agent.iconColor} ${statusClass}`}>
+                  {statusLabel}
                 </div>
-                {/* Status dot */}
-                <div className="absolute bottom-3 right-3 flex items-center gap-1.5">
-                  <span className={`w-1.5 h-1.5 rounded-full ${statusColor} ${statusPulse}`} />
-                  <span className="text-[9px] text-gray-500 font-medium">{statusText}</span>
-                </div>
+
+                {/* Decorative corner light */}
+                <div className="absolute top-0 right-0 w-16 h-16 bg-white/[0.02] blur-xl pointer-events-none" />
               </Link>
             );
           })}

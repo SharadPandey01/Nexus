@@ -180,20 +180,20 @@ const NewEvent = () => {
   });
 
   // ── Resolve display status for each agent card ─────────
-  const getAgentDisplayStatus = (agentKey) => {
+  const getAgentDisplayStatus = (agentKey, agentColor) => {
     const live = agentStatuses[agentKey];
-    if (!live) return { label: 'Idle', statusClass: 'opacity-50' };
+    if (!live) return { label: 'Idle', statusClass: 'text-slate-500 opacity-50' };
 
     const status = live.status || 'idle';
     switch (status) {
       case 'working':
-        return { label: 'Working…', statusClass: 'animate-pulse' };
+        return { label: 'Active', statusClass: `${agentColor} animate-pulse`, dotClass: 'bg-current' };
       case 'done':
-        return { label: 'Done', statusClass: 'opacity-100' };
+        return { label: 'Idle', statusClass: 'text-slate-400' };
       case 'error':
         return { label: 'Error', statusClass: 'text-red-400' };
       default:
-        return { label: 'Idle', statusClass: 'opacity-50' };
+        return { label: 'Idle', statusClass: 'text-slate-500 opacity-50' };
     }
   };
 
@@ -402,7 +402,7 @@ const NewEvent = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
           {agents.map((agent, i) => {
-            const displayStatus = getAgentDisplayStatus(agent.agentKey);
+            const displayStatus = getAgentDisplayStatus(agent.agentKey, agent.color);
             return (
               <button
                 key={i}
@@ -417,6 +417,14 @@ const NewEvent = () => {
                 {/* THE GLOW FLARE */}
                 <div className={`absolute -inset-px bg-gradient-to-br ${agent.flare} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10`} />
 
+                {/* Top Right Status Alert */}
+                <div className={`absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/5 border border-white/10 ${displayStatus.statusClass}`}>
+                  {displayStatus.label === 'Active' && (
+                    <span className={`w-1.5 h-1.5 rounded-full ${displayStatus.dotClass}`} />
+                  )}
+                  {displayStatus.label}
+                </div>
+
                 {/* Icon Container */}
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 
                   bg-white/[0.05] border border-white/[0.1] 
@@ -428,10 +436,6 @@ const NewEvent = () => {
                 <h4 className="text-xl font-bold text-white mb-1">
                   {agent.name}
                 </h4>
-
-                <div className={`text-[10px] font-black uppercase tracking-widest ${agent.color} ${displayStatus.statusClass}`}>
-                  {displayStatus.label}
-                </div>
 
                 {/* Decorative Corner Light */}
                 <div className="absolute top-0 right-0 w-16 h-16 bg-white/[0.02] blur-xl pointer-events-none" />

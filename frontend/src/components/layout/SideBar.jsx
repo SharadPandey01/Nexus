@@ -50,7 +50,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             getAgentStatus()
                 .then(data => {
                     setAgentStatus(data.map(a => {
-
                         const themeMap = {
                             Chronos: { color: 'text-blue-400', bg: 'bg-blue-400' },
                             Hermes: { color: 'text-purple-400', bg: 'bg-purple-400' },
@@ -75,7 +74,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                             color: theme.color,
                             indicator: stateStyles[a.status] || stateStyles.idle
                         };
-
                     }));
                 })
                 .catch(() => { });
@@ -83,7 +81,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         fetchStatus();
         const interval = setInterval(fetchStatus, 5000);
-
         return () => clearInterval(interval);
     }, []);
 
@@ -97,7 +94,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                         <h1 className="text-2xl font-black text-white tracking-tighter">NEXUS</h1>
                     </div>
                 )}
-
                 <button
                     onClick={toggleSidebar}
                     className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all"
@@ -110,16 +106,17 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <nav className="flex-1 px-3 space-y-2 mt-2">
                 {navItems.map((item) => {
                     const Icon = item.icon;
-
                     return (
                         <NavLink
                             key={item.path}
                             to={item.path}
                             end={item.path === "/dashboard"}
-                            className={({ isActive }) => `flex items-center rounded-xl transition-all duration-200 group ${isActive
-                                ? 'bg-primary/10 text-primary border border-primary/20 shadow-[0_0_15px_-5px_rgba(var(--primary-rgb),0.4)]'
-                                : 'text-slate-400 hover:bg-white/5 hover:text-white'
-                                } ${isOpen ? 'px-4 py-3 space-x-4' : 'px-0 py-4 justify-center'}`}
+                            className={({ isActive }) => `flex items-center rounded-xl transition-all duration-200 group ${
+                                isActive
+                                    ? 'text-white border border-white/10'
+                                    : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                            } ${isOpen ? 'px-4 py-3 space-x-4' : 'px-0 py-4 justify-center'}`}
+                            style={({ isActive }) => isActive ? { backgroundColor: '#2a2a2a' } : {}}
                         >
                             <Icon size={20} className="transition-transform group-hover:scale-110" />
                             {isOpen && <span className="font-semibold text-sm">{item.label}</span>}
@@ -133,25 +130,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 px-1">
                     Swarm Status
                 </h3>
-
                 <div className="space-y-4">
                     {agentStatus.map(agent => (
                         <div key={agent.name} className="flex items-center justify-between">
-
                             <div className="flex items-center space-x-3">
                                 <div className={`w-2 h-2 rounded-full ${agent.indicator} transition-all duration-500`} />
-
                                 <div className="flex flex-col">
                                     <span className={`text-xs font-bold ${agent.color}`}>
                                         {agent.name}
                                     </span>
-
                                     <span className="text-[10px] text-slate-500 leading-none">
                                         {agent.statusLabel || agent.status}
                                     </span>
                                 </div>
                             </div>
-
                         </div>
                     ))}
                 </div>
@@ -159,13 +151,14 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
             {/* Bottom Actions */}
             <div className="p-4 border-t border-white/10 space-y-2">
-
                 <NavLink
                     to="/dashboard/Profile"
-                    className={({ isActive }) => `flex items-center rounded-xl transition-all duration-200 group ${isActive
-                        ? 'bg-primary/10 text-primary border border-primary/20 shadow-[0_0_15px_-5px_rgba(var(--primary-rgb),0.4)]'
-                        : 'text-slate-400 hover:bg-white/5 hover:text-white'
-                        } ${isOpen ? 'px-4 py-3 space-x-4' : 'px-0 py-4 justify-center'}`}
+                    className={({ isActive }) => `flex items-center rounded-xl transition-all duration-200 group ${
+                        isActive
+                            ? 'text-white border border-white/10'
+                            : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                    } ${isOpen ? 'px-4 py-3 space-x-4' : 'px-0 py-4 justify-center'}`}
+                    style={({ isActive }) => isActive ? { backgroundColor: '#2a2a2a' } : {}}
                 >
                     <User size={20} className="transition-transform group-hover:scale-110" />
                     {isOpen && <span className="text-sm font-medium">Profile</span>}
@@ -178,7 +171,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                     <LogOut size={20} />
                     {isOpen && <span className="text-sm font-medium">Logout</span>}
                 </button>
-
             </div>
 
         </aside>
