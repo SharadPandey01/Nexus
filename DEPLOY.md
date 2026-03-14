@@ -12,6 +12,7 @@ This guide explains how to deploy the **Nexus — Event Intelligence Platform** 
     *   **Environment**: Select `Python 3`.
     *   **Build Command**: `pip install -r requirements.txt`
     *   **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+        ( **IMPORTANT**: You must include `--host 0.0.0.0`. If you leave it as the default, Render won't be able to connect to your app!)
 
 2.  **Environment Variables**:
     *   `GEMINI_API_KEY`: Your Google GenAI key.
