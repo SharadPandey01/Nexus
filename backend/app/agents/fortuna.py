@@ -257,6 +257,21 @@ Provide a comprehensive financial overview with budget tracking, spending alerts
 
         reasoning = parsed.get("reasoning", "Financial analysis completed by Fortuna.")
 
+        # ---- Persist financial analysis to database ----
+        from app.repository import insert_agent_log
+        event = state_manager.get_event()
+        event_id = event.get("id", "default") if event else "default"
+        try:
+            await insert_agent_log({
+                "event_id": event_id,
+                "agent": "fortuna",
+                "action": "financial_analysis",
+                "details": f"Budget: ${total_budget:,.0f}, Spent: ${total_spent:,.0f}, Remaining: ${remaining_balance:,.0f}, Sponsors: {len(sponsor_targets)}",
+                "reasoning": reasoning,
+            })
+        except Exception as db_err:
+            print(f"[Fortuna] DB log insert failed: {db_err}")
+
         # ---- Build approval items ----
         approval_items = []
         needs_approval = False

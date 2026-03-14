@@ -178,6 +178,7 @@ async def parse_participant_file(file_path: str) -> Dict[str, Any]:
         # ---- Validate email ----
         is_valid = _validate_email(email)
         participant["is_valid_email"] = is_valid
+        participant["status"] = "valid" if is_valid else "invalid"
 
         if not is_valid:
             invalid_details.append({

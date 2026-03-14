@@ -256,6 +256,23 @@ Draft professional emails, segment the audience if needed, and provide preview s
             }
         ]
 
+        # ---- Persist email drafts to database ----
+        from app.repository import insert_content
+        event = state_manager.get_event()
+        event_id = event.get("id", "default") if event else "default"
+        for preview in preview_emails:
+            try:
+                await insert_content(event_id, {
+                    "content_type": "email_draft",
+                    "platform": "email",
+                    "title": preview.get("subject", ""),
+                    "body": preview.get("body", ""),
+                    "status": "draft",
+                    "reasoning": reasoning,
+                })
+            except Exception as db_err:
+                print(f"[Hermes] DB insert for email draft failed: {db_err}")
+
         return {
             "mailer_output": {
                 "action_completed": action_completed,

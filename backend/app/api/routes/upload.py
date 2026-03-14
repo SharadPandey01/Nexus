@@ -160,7 +160,7 @@ async def upload_participants(file: UploadFile = File(...)):
             "invalid_emails": parsed["invalid"],
             "invalid_details": parsed.get("invalid_details", []),
         },
-        "participants": parsed["participants"][:5],  # Preview first 5
+        "participants": parsed["participants"],  # Return all for Hermes UI
     }
 
 

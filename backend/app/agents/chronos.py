@@ -244,6 +244,16 @@ Generate an optimized schedule. Detect and resolve any conflicts. If this modifi
         if timeline:
             state_manager.set_schedule(timeline)
 
+            # ---- Persist sessions to database ----
+            from app.repository import insert_session
+            event = state_manager.get_event()
+            event_id = event.get("id", "default") if event else "default"
+            for session in timeline:
+                try:
+                    await insert_session(event_id, session)
+                except Exception as db_err:
+                    print(f"[Chronos] DB insert for session '{session.get('title')}' failed: {db_err}")
+
         # Conflicts found
         conflicts_found = []
         for conflict in parsed.get("conflicts_found", []):

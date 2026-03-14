@@ -162,6 +162,14 @@ async def insert_content(event_id: str, content_data: dict) -> dict:
     return content_data
 
 
+async def get_content_queue(event_id: str) -> List[dict]:
+    """Retrieves the content queue for a specific event."""
+    db = await get_db()
+    cursor = await db.execute(
+        "SELECT * FROM content_queue WHERE event_id = ? ORDER BY created_at DESC", (event_id,))
+    return [dict(row) for row in await cursor.fetchall()]
+
+
 # ============================================================================
 # APPROVALS
 # ============================================================================
@@ -184,6 +192,14 @@ async def insert_approval(event_id: str, approval_data: dict) -> dict:
     await db.commit()
     approval_data["id"] = aid
     return approval_data
+
+
+async def get_approvals(event_id: str) -> List[dict]:
+    """Retrieves pending approvals for a specific event."""
+    db = await get_db()
+    cursor = await db.execute(
+        "SELECT * FROM approvals WHERE event_id = ? AND status = 'pending' ORDER BY created_at ASC", (event_id,))
+    return [dict(row) for row in await cursor.fetchall()]
 
 
 # ============================================================================

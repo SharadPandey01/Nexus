@@ -68,6 +68,7 @@ class StateManager:
                 "hermes": {"status": "idle", "last_task": None, "last_active": None},
                 "apollo": {"status": "idle", "last_task": None, "last_active": None},
                 "athena": {"status": "idle", "last_task": None, "last_active": None},
+                "fortuna": {"status": "idle", "last_task": None, "last_active": None},
             },
 
             # ---- Activity Log ----

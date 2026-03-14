@@ -212,6 +212,25 @@ Generate platform-appropriate content. **CRITICAL: Generate EXACTLY 1 content pi
             # Add to the state manager's content queue
             state_manager.add_content(content_piece)
 
+            # ---- Persist to database ----
+            from app.repository import insert_content
+            event = state_manager.get_event()
+            event_id = event.get("id", "default") if event else "default"
+            try:
+                await insert_content(event_id, {
+                    "id": content_id,
+                    "content_type": "social_post",
+                    "platform": piece.get("platform"),
+                    "title": piece.get("text", "")[:60],
+                    "body": piece.get("text", ""),
+                    "tone": piece.get("tone"),
+                    "hashtags": ",".join(piece.get("hashtags", [])),
+                    "status": "draft",
+                    "reasoning": parsed.get("reasoning", ""),
+                })
+            except Exception as db_err:
+                print(f"[Apollo] DB insert for content '{content_id}' failed: {db_err}")
+
         # Campaign timeline
         campaign = parsed.get("campaign_timeline", {})
         campaign_timeline = {

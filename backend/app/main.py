@@ -49,6 +49,42 @@ async def lifespan(app: FastAPI):
     from app.state.state_manager import state_manager
     state_manager.initialize()
     print("🧠 State manager initialized")
+    
+    # Auto-load the most recent active event into state
+    from app.database import get_db
+    try:
+        db = await get_db()
+        cursor = await db.execute("SELECT * FROM events WHERE status != 'completed' ORDER BY created_at DESC LIMIT 1")
+        row = await cursor.fetchone()
+        if row:
+            event = dict(row)
+            state_manager.set_event(event)
+            print(f"🔄 Auto-loaded latest active event: {event.get('name')}")
+            
+            # Load full context for the event
+            from app.repository import get_participants, get_sessions, get_content_queue, get_approvals, get_agent_logs
+            
+            participants = await get_participants(event["id"])
+            state_manager.set_participants(participants)
+            
+            schedule = await get_sessions(event["id"])
+            state_manager.set_schedule(schedule)
+            
+            content = await get_content_queue(event["id"])
+            state_manager.set_content_queue(content)
+            
+            approvals = await get_approvals(event["id"])
+            for acc in approvals:
+                state_manager.add_approval(acc)
+                
+            logs = await get_agent_logs(event["id"], limit=50)
+            # Logs are prepended in memory, so we add them in reverse order to keep correct chronological sequence
+            for log in reversed(logs):
+                state_manager.add_activity({"agent": log["agent"], "action": log["action"], "details": log["details"], "timestamp": log["created_at"]})
+                
+            print(f"📊 Loaded {len(participants)} participants, {len(schedule)} sessions, {len(content)} content items, {len(approvals)} approvals")
+    except Exception as e:
+        print(f"⚠️ Failed to auto-load event on startup: {e}")
 
     print("✅ Nexus Backend is ready!")
     print(f"📖 API docs: http://localhost:{settings.PORT}/docs")
@@ -117,6 +153,8 @@ from app.api.routes.schedule import router as schedule_router
 from app.api.routes.content import router as content_router
 from app.api.routes.approvals import router as approvals_router
 from app.api.routes.activity import router as activity_router
+from app.api.routes.dashboard import router as dashboard_router
+from app.api.routes.mail import router as mail_router
 
 # Mount all REST API routers under /api prefix
 app.include_router(events_router, prefix="/api", tags=["Events"])
@@ -126,6 +164,8 @@ app.include_router(schedule_router, prefix="/api", tags=["Schedule"])
 app.include_router(content_router, prefix="/api", tags=["Content"])
 app.include_router(approvals_router, prefix="/api", tags=["Approvals"])
 app.include_router(activity_router, prefix="/api", tags=["Activity"])
+app.include_router(dashboard_router, prefix="/api", tags=["Dashboard"])
+app.include_router(mail_router, prefix="/api", tags=["Mail"])
 
 
 # ============================================================================
