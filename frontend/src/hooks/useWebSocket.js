@@ -34,9 +34,20 @@ export function useWebSocket(path, options = {}) {
     }
 
     try {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.host;
-      const ws = new WebSocket(`${protocol}//${host}${path}`);
+      let wsUrl;
+      const apiUr = import.meta.env.VITE_API_URL;
+
+      if (apiUr) {
+        // e.g., https://nexus-backend.onrender.com -> wss://nexus-backend.onrender.com
+        wsUrl = `${apiUr.replace(/^http/, 'ws')}${path}`;
+      } else {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.host;
+        wsUrl = `${protocol}//${host}${path}`;
+      }
+
+      console.log(`[WS] Connecting to ${wsUrl}`);
+      const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
         setIsConnected(true);

@@ -3,7 +3,9 @@
  * All calls include error handling and return parsed JSON.
  */
 
-const API_BASE = '/api';
+// In development, we use relative paths (proxy handled by Vite)
+// In production, we use the absolute URL of the backend (e.g., https://nexus-backend.onrender.com)
+const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api';
 
 async function request(path, options = {}) {
   try {

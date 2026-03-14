@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: nexus-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        value: sqlite:///./data/nexus.db
+      - key: CORS_ORIGINS
+        value: "http://localhost:5173" # Update this with your Vercel URL

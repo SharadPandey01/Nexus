@@ -1,26 +1,15 @@
-# Core Web Framework
-fastapi==0.115.0          # High-performance async web framework
-uvicorn[standard]==0.30.6 # ASGI server to run FastAPI
-python-multipart==0.0.9   # Required for file uploads (CSV/Excel)
-
-# Data Validation & Settings 
-pydantic==2.9.2            # Data validation via type annotations
-pydantic-settings==2.5.2   # Load settings from .env files
-
-# --- Database ---
-aiosqlite==0.20.0          # Async SQLite driver
-aiofiles==24.1.0           # Async file operations
-
-# AI / LLM Orchestration 
-langgraph==0.2.28          # State machine for multi-agent orchestration
-langchain-google-genai==2.0.0  # Google Gemini LLM integration
-langchain-core==0.3.10     # Core LangChain abstractions
-
-#  Data Processing 
-pandas==2.2.3              # CSV/Excel parsing and data manipulation
-openpyxl==3.1.5            # Excel file support for pandas
-
-#  Environment & Utilities 
-python-dotenv==1.0.1       # Load environment variables from .env
-
-
+fastapi==0.115.0
+uvicorn==0.30.0
+pydantic==2.9.0
+pydantic-settings==2.5.0
+python-dotenv==1.0.1
+aiosqlite==0.20.0
+langchain==1.2.10
+langchain-core==1.2.13
+langchain-google-genai==4.2.0
+langgraph==1.0.8
+google-generativeai==0.8.0
+python-multipart==0.0.9
+httpx==0.28.1
+websockets==15.0.1
+jinja2==3.1.5
