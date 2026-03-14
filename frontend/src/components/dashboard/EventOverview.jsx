@@ -13,20 +13,19 @@ const EventOverview = () => {
             .finally(() => setLoading(false));
     }, []);
 
-    // Fallback data
     const data = event || {
-        name: 'TechSummit 2026',
-        venue: 'Main Campus, Building A',
-        days: 3,
-        attendees: 347,
-        sessions: 24,
-        speakers: 18,
-        status: 'active',
+        name: loading ? 'Loading...' : 'No Active Event',
+        venue: loading ? '...' : 'TBD',
+        days: 0,
+        attendees: 0,
+        sessions: 0,
+        speakers: 0,
+        status: 'draft',
     };
 
     const stats = [
         { label: 'Days', value: data.days, sub: 'Total' },
-        { label: 'Attendees', value: data.attendees, sub: 'Registered' },
+        { label: 'Attendees', value: data.attendees, sub: 'Target' },
         { label: 'Sessions', value: data.sessions, sub: 'Scheduled' },
         { label: 'Speakers', value: data.speakers, sub: 'Confirmed' },
     ];

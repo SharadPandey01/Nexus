@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Lightbulb, AlertTriangle, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Lightbulb, AlertTriangle, TrendingUp, ArrowRight } from 'lucide-react';
 import { getInsights } from '../../services/api';
 
 const iconMap = {
@@ -24,12 +25,10 @@ const QuickInsights = () => {
             .finally(() => setLoading(false));
     }, []);
 
-    // Fallback
-    const items = insights.length > 0 ? insights : [
-        { id: 1, type: 'warning', title: 'Capacity Warning', desc: 'Workshop C has 45 registrants but Room 2 only seats 40.', action: 'Suggest Swap' },
-        { id: 2, type: 'info', title: 'Registration Velocity', desc: 'Velocity is 23% slower than last week. Target is 500.', action: 'Push Promo' },
-        { id: 3, type: 'success', title: 'Audience Insight', desc: '42% of registrants are students. Highly engaged.', action: '' },
-    ];
+    // Items to display
+    const items = insights.length > 0 ? insights : (loading ? [] : [
+        { id: 1, type: 'info', title: 'Start Planning', desc: 'Provide an event prompt to generate insights.', action: 'Create Event' }
+    ]);
 
     return (
         <div className="glass-card shadow-sm h-full flex flex-col">
@@ -37,6 +36,9 @@ const QuickInsights = () => {
                 <h3 className="font-semibold text-white flex items-center">
                     <span className="text-agents-athena mr-2">📊</span> Athena Insights
                 </h3>
+                <Link to="/dashboard/athena" className="text-xs text-primary hover:text-white transition-colors flex items-center gap-1 font-medium">
+                    View All <ArrowRight size={12} />
+                </Link>
             </div>
 
             <div className="p-5 flex-1 space-y-4">
@@ -50,7 +52,7 @@ const QuickInsights = () => {
                         ))}
                     </div>
                 ) : (
-                    items.map(item => {
+                    items.slice(0, 4).map(item => {
                         const c = colorMap[item.type] || colorMap.info;
                         const Icon = iconMap[item.type] || TrendingUp;
                         return (

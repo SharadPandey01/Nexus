@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle2, Edit3, XCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { CheckCircle2, Edit3, XCircle, ArrowRight } from 'lucide-react';
 import { getApprovals, handleApproval } from '../../services/api';
 
 const PendingApprovals = () => {
@@ -9,7 +10,7 @@ const PendingApprovals = () => {
 
   useEffect(() => {
     getApprovals()
-      .then(setApprovals)
+      .then(res => setApprovals(res?.approvals || []))
       .catch(() => setApprovals([]))
       .finally(() => setLoading(false));
   }, []);
@@ -35,7 +36,7 @@ const PendingApprovals = () => {
   };
 
   // Fallback data
-  const items = !loading && approvals.length === 0 ? [] : approvals;
+  const items = Array.isArray(approvals) ? approvals : [];
 
   return (
     <div className="glass-card shadow-sm">
@@ -45,12 +46,15 @@ const PendingApprovals = () => {
           Pending Approvals
           <span className="ml-2 bg-white/10 text-gray-300 text-xs px-2 py-0.5 rounded-full">{items.length}</span>
         </h3>
+        <Link to="/dashboard/approvals" className="text-xs text-primary hover:text-white transition-colors flex items-center gap-1 font-medium">
+          View All <ArrowRight size={12} />
+        </Link>
       </div>
       
       <div className="p-5 space-y-4">
         {loading ? (
           <div className="space-y-3">
-            {[1,2].map(i => (
+            {[1].map(i => (
               <div key={i} className="border border-white/5 rounded-lg p-4">
                 <div className="skeleton h-4 w-1/2 mb-3" />
                 <div className="skeleton h-12 mb-3" />
@@ -60,25 +64,28 @@ const PendingApprovals = () => {
           </div>
         ) : (
           <>
-            {items.map((item) => {
-              const colors = agentColorMap[item.agent] || { color: 'text-gray-400', bg: 'bg-gray-800' };
+            {items.slice(0, 1).map((item) => {
+              if (!item) return null;
+              const agentName = item.agent && typeof item.agent === 'string' ? item.agent : '';
+              const colors = agentColorMap[agentName] || { color: 'text-gray-400', bg: 'bg-gray-800' };
+              const initial = agentName ? agentName.charAt(0).toUpperCase() : '?';
               return (
-                <div key={item.id} className="border border-white/10 rounded-lg p-4 bg-black/40 transition-colors hover:border-white/20">
+                <div key={item.id || Math.random()} className="border border-white/10 rounded-lg p-4 bg-black/40 transition-colors hover:border-white/20">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center">
                       <div className={`p-2 rounded mr-3 ${colors.bg} ${colors.color}`}>
-                         {item.agent.charAt(0)}
+                         {initial}
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold text-white">{item.title}</h4>
-                        <div className="text-xs text-text-secondary">{item.desc} • {item.impact}</div>
+                        <h4 className="text-sm font-semibold text-white">{item.action || item.title || 'Pending Task'}</h4>
+                        <div className="text-xs text-text-secondary">{item.description || item.desc || 'No description provided'} • {item.impact || 'Normal Impact'}</div>
                       </div>
                     </div>
                   </div>
                   
                   <div className="bg-black/30 p-3 rounded-md mb-4 border border-white/10">
                     <p className="text-sm text-gray-300 font-serif italic text-ellipsis overflow-hidden whitespace-nowrap">
-                      "{item.preview}"
+                      "{item.preview_json || item.preview || 'No preview available'}"
                     </p>
                   </div>
                   

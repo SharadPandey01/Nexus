@@ -72,10 +72,10 @@ const CommandBar = () => {
                 </form>
 
                 <div className="flex items-center space-x-4 ml-6">
-                    <button className="relative p-2 text-text-secondary hover:text-white transition-colors">
+                    <Link to="/dashboard/approvals" className="relative p-2 text-text-secondary hover:text-white transition-colors" title="Pending Approvals">
                         <Bell size={20} />
                         <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full animate-pulse"></span>
-                    </button>
+                    </Link>
                     <Link to="/dashboard/Profile" className="flex items-center space-x-3 pl-4 border-l border-white/10 hover:opacity-80 transition-opacity">
                         <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold border border-primary/30">
                             YO

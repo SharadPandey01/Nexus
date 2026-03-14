@@ -1,196 +1,524 @@
 import { useState, useEffect } from 'react';
-import { Image as ImageIcon, Send, Sparkles, Wand2, CalendarSync, Loader2, Check } from 'lucide-react';
+import {
+  Send, Sparkles, Wand2, CalendarSync, Loader2, Check,
+  BarChart3, Clock, TrendingUp, RefreshCw, Lightbulb,
+  Plus, ChevronDown, ChevronUp
+} from 'lucide-react';
 import { generateContent, getContentQueue, approveContent } from '../../services/api';
 
+/* ── Platform visual config ────────────────────────────── */
+const PLATFORMS = {
+  linkedin: {
+    label: 'LinkedIn',
+    gradient: 'from-blue-600 to-blue-800',
+    bg: 'bg-blue-900/30',
+    border: 'border-blue-700/50',
+    text: 'text-blue-300',
+    badge: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
+  },
+  twitter: {
+    label: 'Twitter / X',
+    gradient: 'from-sky-500 to-sky-700',
+    bg: 'bg-sky-900/30',
+    border: 'border-sky-700/50',
+    text: 'text-sky-300',
+    badge: 'bg-sky-500/20 text-sky-300 border-sky-500/40',
+  },
+  instagram: {
+    label: 'Instagram',
+    gradient: 'from-pink-500 via-purple-500 to-orange-400',
+    bg: 'bg-pink-900/30',
+    border: 'border-pink-700/50',
+    text: 'text-pink-300',
+    badge: 'bg-pink-500/20 text-pink-300 border-pink-500/40',
+  },
+};
+
 const ContentStudio = () => {
-  const [brief, setBrief] = useState('Promote the opening keynote by Dr. Sarah Chen. Focus on the impact of autonomous AI over the next 5 years. Target audience: developers and product managers.');
-  const [platforms, setPlatforms] = useState(['linkedin', 'twitter']);
-  const [tone, setTone] = useState('professional');
+  const [brief, setBrief] = useState('');
+  const [platforms, setPlatforms] = useState(['linkedin', 'twitter', 'instagram']);
+  const [tone, setTone] = useState('auto');
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState(null);
   const [queue, setQueue] = useState([]);
   const [approving, setApproving] = useState(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Load existing content queue
   useEffect(() => {
-    getContentQueue().then(setQueue).catch(() => {});
+    getContentQueue()
+      .then((data) => {
+        const items = data?.content || data || [];
+        setQueue(Array.isArray(items) ? items : []);
+      })
+      .catch(() => setQueue([]));
   }, []);
 
   const togglePlatform = (p) => {
-    setPlatforms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
+    setPlatforms((prev) =>
+      prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]
+    );
   };
 
+  /* ── Generate via Apollo ─────────────────────────────── */
   const handleGenerate = async () => {
+    if (!brief.trim() || generating) return;
     setGenerating(true);
+    setResult(null);
     try {
       const res = await generateContent(brief, platforms, tone);
       setResult(res);
+      // Append new variants to queue history
+      if (res?.variants) {
+        setQueue((prev) => [...res.variants, ...prev]);
+      }
     } catch (e) {
       console.error('Generate failed:', e);
     }
     setGenerating(false);
   };
 
+  /* ── New Campaign — reset form ───────────────────────── */
+  const handleNewCampaign = () => {
+    setBrief('');
+    setResult(null);
+    setPlatforms(['linkedin', 'twitter', 'instagram']);
+    setTone('auto');
+  };
+
+  /* ── Approve a content piece ─────────────────────────── */
   const handleApprove = async (id) => {
     setApproving(id);
     try {
       await approveContent(id);
-      setQueue(prev => prev.map(q => q.id === id ? { ...q, status: 'approved' } : q));
-      if (result) {
+      // Update in result
+      if (result?.variants) {
         setResult({
           ...result,
-          variants: result.variants.map(v => v.id === id ? { ...v, status: 'approved' } : v)
+          variants: result.variants.map((v) =>
+            v.id === id ? { ...v, status: 'approved' } : v
+          ),
         });
       }
-    } catch (e) { console.error(e); }
+      // Update in queue
+      setQueue((prev) =>
+        prev.map((q) => (q.id === id ? { ...q, status: 'approved' } : q))
+      );
+    } catch (e) {
+      console.error(e);
+    }
     setApproving(null);
   };
 
-  const variants = result?.variants || queue;
-  const timeline = result?.campaign_timeline || [
-    { id: 1, label: 'Teaser', time: 'Today 2PM', type: 'teaser' },
-    { id: 2, label: 'Speaker Bio', time: 'Tom. 9AM', type: 'speaker_bio' },
-    { id: 3, label: 'Live Update', time: 'Day of Event', type: 'live_update' },
-  ];
-
-  const platformColors = {
-    linkedin: 'bg-blue-900/40 text-blue-300 border-blue-900/60',
-    twitter: 'bg-sky-900/40 text-sky-300 border-sky-900/60',
-    instagram: 'bg-pink-900/40 text-pink-300 border-pink-900/60',
-    email: 'bg-gray-800 text-gray-400 border-gray-700',
-  };
+  /* ── Derived data ────────────────────────────────────── */
+  const variants = result?.variants || [];
+  const timeline = result?.campaign_timeline || null;
+  const insights = result?.engagement_insights || null;
 
   return (
     <div className="space-y-6 h-full pb-8">
-      <div className="flex justify-between items-end">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-white drop-shadow-sm mb-2">Content Studio</h2>
-          <p className="text-text-secondary">Apollo generates promotional campaigns across platforms.</p>
-        </div>
-        <div className="flex gap-3">
+      {/* ─── HERO HEADER (APOLLO) ────────────────────────── */}
+      <header className="relative overflow-hidden rounded-2xl border border-agents-apollo/20 bg-gradient-to-br from-agents-apollo/[0.06] via-black/60 to-pink-500/[0.04]">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(167,139,250,0.12),transparent)]" />
+        <div className="relative z-10 px-8 py-8 flex items-center justify-between">
+          <div className="flex items-center gap-5">
+            <div className="relative">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-agents-apollo/30 to-purple-600/20 flex items-center justify-center border border-agents-apollo/30 shadow-[0_0_30px_rgba(167,139,250,0.15)]">
+                <Sparkles className="text-agents-apollo" size={28} />
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-black animate-pulse" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-black tracking-tight text-white mb-0.5">
+                APOLLO
+              </h1>
+              <p className="text-sm text-slate-400 flex items-center gap-2">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-agents-apollo animate-pulse" />
+                Content & Campaign Strategist
+              </p>
+            </div>
+          </div>
+
           <button
-            onClick={handleGenerate}
-            disabled={generating || !brief.trim()}
-            className="flex items-center gap-2 px-4 py-2 bg-agents-apollo/10 text-agents-apollo border border-agents-apollo/30 rounded-lg text-sm font-medium hover:bg-agents-apollo/20 transition-colors shadow-[0_0_10px_rgba(167,139,250,0.1)] disabled:opacity-50"
+            onClick={handleNewCampaign}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-agents-apollo/10 border border-agents-apollo/30 text-sm font-medium text-agents-apollo hover:bg-agents-apollo/20 transition-all shadow-[0_0_15px_rgba(167,139,250,0.15)]"
           >
-            {generating ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
-            {generating ? 'Generating...' : 'New Campaign'}
+            <Plus size={16} />
+            New Campaign
           </button>
         </div>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-up" style={{ animationDelay: '80ms' }}>
+        {/* ── Left: Campaign Brief ────────────────────────── */}
         <div className="lg:col-span-1 space-y-6">
-           <div className="bg-card border border-gray-800 rounded-xl p-5 shadow-sm">
-             <h3 className="font-semibold text-white mb-4">Campaign Brief</h3>
-             <textarea 
-               className="w-full h-32 bg-background border border-gray-700 rounded-lg p-3 text-sm text-text-primary focus:ring-1 focus:ring-agents-apollo focus:border-agents-apollo focus:outline-none resize-none mb-4"
-               placeholder="Enter event details and goals..."
-               value={brief}
-               onChange={e => setBrief(e.target.value)}
-             ></textarea>
-             
-             <div className="space-y-4">
-                <div>
-                  <label className="text-xs text-gray-500 font-semibold uppercase mb-2 block">Platforms</label>
-                  <div className="flex gap-2 flex-wrap">
-                    {['linkedin', 'twitter', 'instagram', 'email'].map(p => (
-                      <span
-                        key={p}
-                        onClick={() => togglePlatform(p)}
-                        className={`text-xs px-3 py-1 rounded-full border cursor-pointer transition-all ${platforms.includes(p) ? (platformColors[p] || platformColors.email) : 'bg-gray-800 text-gray-500 border-gray-700 opacity-50'}`}
-                      >
-                        {p === 'twitter' ? 'Twitter/X' : p.charAt(0).toUpperCase() + p.slice(1)}
-                      </span>
-                    ))}
+          <div className="bg-card border border-gray-800 rounded-xl p-5 shadow-sm">
+            <h3 className="font-semibold text-white mb-4">Campaign Brief</h3>
+            <textarea
+              className="w-full h-32 bg-background border border-gray-700 rounded-lg p-3 text-sm text-text-primary focus:ring-1 focus:ring-agents-apollo focus:border-agents-apollo focus:outline-none resize-none mb-4"
+              placeholder={`Describe what you want Apollo to promote — for example:\n\n"Promote the opening keynote by Dr. Sarah Chen on Autonomous AI. Target developers and product managers. Highlight the 5-year industry outlook and free networking dinner."\n\nInclude: topic, speaker, target audience, key highlights`}
+              value={brief}
+              onChange={(e) => setBrief(e.target.value)}
+            />
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs text-gray-500 font-semibold uppercase mb-2 block">
+                  Platforms
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {Object.entries(PLATFORMS).map(([key, cfg]) => (
+                    <span
+                      key={key}
+                      onClick={() => togglePlatform(key)}
+                      className={`text-xs px-3 py-1.5 rounded-full border cursor-pointer transition-all flex items-center gap-1.5 ${
+                        platforms.includes(key)
+                          ? cfg.badge
+                          : 'bg-gray-800 text-gray-500 border-gray-700 opacity-50'
+                      }`}
+                    >
+                      {cfg.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 font-semibold uppercase mb-2 block">
+                  Tone
+                </label>
+                <select
+                  value={tone}
+                  onChange={(e) => setTone(e.target.value)}
+                  className="w-full bg-background border border-gray-700 rounded-lg p-2 text-sm text-text-primary focus:outline-none"
+                >
+                  <option value="auto">Auto (Let Apollo Decide)</option>
+                  <option value="professional">Professional</option>
+                  <option value="hype">Hype / Casual</option>
+                  <option value="technical">Technical</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              onClick={handleGenerate}
+              disabled={generating || !brief.trim()}
+              className="w-full mt-6 flex items-center justify-center gap-2 px-4 py-2.5 bg-agents-apollo/20 text-agents-apollo border border-agents-apollo/50 rounded-lg text-sm font-semibold hover:bg-agents-apollo/30 transition-colors disabled:opacity-50"
+            >
+              {generating ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Sparkles size={16} />
+              )}
+              {generating ? 'Apollo is creating...' : 'Generate Assets'}
+            </button>
+          </div>
+
+          {/* ── Engagement Insights (only after generation) ── */}
+          {insights && (
+            <div className="bg-card border border-gray-800 rounded-xl p-5 shadow-sm animate-fade-up">
+              <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+                <TrendingUp size={16} className="text-agents-apollo" />
+                Engagement Insights
+              </h3>
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="bg-background rounded-lg p-3 text-center border border-gray-800">
+                  <div className="text-lg font-bold text-agents-apollo">
+                    {insights.best_day}
+                  </div>
+                  <div className="text-[10px] text-gray-500 uppercase tracking-wider">
+                    Best Day
                   </div>
                 </div>
-                <div>
-                  <label className="text-xs text-gray-500 font-semibold uppercase mb-2 block">Tone</label>
-                  <select value={tone} onChange={e => setTone(e.target.value)} className="w-full bg-background border border-gray-700 rounded-lg p-2 text-sm text-text-primary focus:outline-none">
-                    <option value="professional">Professional</option>
-                    <option value="hype">Hype / Casual</option>
-                    <option value="technical">Technical</option>
-                    <option value="auto">Auto (Let Apollo Decide)</option>
-                  </select>
+                <div className="bg-background rounded-lg p-3 text-center border border-gray-800">
+                  <div className="text-lg font-bold text-agents-apollo">
+                    {insights.best_time}
+                  </div>
+                  <div className="text-[10px] text-gray-500 uppercase tracking-wider">
+                    Best Time
+                  </div>
                 </div>
-             </div>
-             
-             <button
-               onClick={handleGenerate}
-               disabled={generating || !brief.trim()}
-               className="w-full mt-6 flex items-center justify-center gap-2 px-4 py-2 bg-agents-apollo/20 text-agents-apollo border border-agents-apollo/50 rounded-lg text-sm font-semibold hover:bg-agents-apollo/30 transition-colors disabled:opacity-50"
-             >
-               {generating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-               {generating ? 'Apollo is thinking...' : 'Generate Assets'}
-             </button>
-           </div>
+                <div className="bg-background rounded-lg p-3 text-center border border-gray-800">
+                  <div className="text-lg font-bold text-agents-apollo capitalize">
+                    {insights.top_content_type}
+                  </div>
+                  <div className="text-[10px] text-gray-500 uppercase tracking-wider">
+                    Top Format
+                  </div>
+                </div>
+              </div>
+              {insights.insights?.length > 0 && (
+                <ul className="space-y-2">
+                  {insights.insights.map((ins, i) => (
+                    <li key={i} className="text-xs text-gray-400 flex items-start gap-2">
+                      <Lightbulb size={12} className="text-agents-apollo mt-0.5 flex-shrink-0" />
+                      {ins}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
 
+        {/* ── Right: Output ───────────────────────────────── */}
         <div className="lg:col-span-2 space-y-6">
-           {/* Timeline Strip */}
-           <div className="bg-card border border-gray-800 rounded-xl p-4 shadow-sm flex items-center overflow-x-auto gap-4 scrollbar-hide">
-              <div className="flex items-center text-agents-apollo shrink-0 mr-4 font-medium text-sm">
-                <CalendarSync size={18} className="mr-2"/> Schedule Plan
+          {/* ── Campaign Timeline ─────────────────────────── */}
+          {timeline && (
+            <div className="bg-card border border-gray-800 rounded-xl p-4 shadow-sm flex items-center overflow-x-auto gap-4 scrollbar-hide animate-fade-up">
+              <div className="flex items-center text-agents-apollo shrink-0 mr-2 font-medium text-sm">
+                <CalendarSync size={18} className="mr-2" /> Campaign Plan
               </div>
-              {timeline.map(t => (
-                <div key={t.id} className={`rounded p-2 text-xs shrink-0 flex flex-col items-center min-w-[100px] border ${t.type === 'live_update' ? 'bg-gray-800/50 border-gray-700 border-dashed' : 'bg-agents-apollo/20 border-agents-apollo/40'}`}>
-                   <span className={`font-bold mb-1 ${t.type === 'live_update' ? 'text-gray-500' : 'text-gray-400'}`}>{t.time}</span>
-                   <span className={`text-[10px] uppercase ${t.type === 'live_update' ? 'text-gray-500' : 'text-agents-apollo'}`}>{t.label}</span>
+              <div className="flex gap-3 flex-1">
+                {(timeline.phases || []).map((phase, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg py-2 px-4 text-xs shrink-0 flex flex-col items-center min-w-[90px] border bg-agents-apollo/10 border-agents-apollo/30"
+                  >
+                    <span className="font-bold text-agents-apollo mb-0.5">
+                      Phase {i + 1}
+                    </span>
+                    <span className="text-gray-400 text-[10px] uppercase">
+                      {phase}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="shrink-0 text-right pl-4 border-l border-gray-800">
+                <div className="text-sm font-bold text-white">
+                  {timeline.total_posts} posts
                 </div>
-              ))}
-           </div>
-
-           {/* Generated Output Variants */}
-           <div className="bg-card border border-gray-800 rounded-xl shadow-sm min-h-[400px]">
-              <div className="border-b border-gray-800 p-4 bg-gray-900/40">
-                <h3 className="font-semibold text-white">Generated Variants</h3>
+                <div className="text-[10px] text-gray-500">
+                  over {timeline.duration_days} days
+                </div>
               </div>
-              
-              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                 {generating ? (
-                   [1,2].map(i => (
-                     <div key={i} className="border border-gray-800 rounded-lg bg-background p-4 animate-pulse">
-                       <div className="h-4 bg-gray-700 rounded w-20 mb-4" />
-                       <div className="space-y-2 mb-4"><div className="h-3 bg-gray-700 rounded" /><div className="h-3 bg-gray-700 rounded w-3/4" /><div className="h-3 bg-gray-700 rounded w-1/2" /></div>
-                       <div className="h-20 bg-gray-700 rounded mb-4" />
-                       <div className="h-8 bg-gray-700 rounded" />
-                     </div>
-                   ))
-                 ) : variants.length > 0 ? (
-                   variants.map((v, i) => (
-                     <div key={v.id || i} className={`border rounded-lg bg-background p-4 relative group transition-all ${v.is_recommended ? 'border-agents-apollo/50 hover:shadow-[0_0_15px_rgba(167,139,250,0.15)]' : 'border-gray-800 hover:border-gray-700'}`}>
-                        {v.is_recommended && <div className="absolute top-0 right-0 bg-agents-apollo text-black text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-lg">Recommended</div>}
-                        <div className="flex justify-between items-center mb-3">
-                          <span className={`text-[10px] px-2 py-0.5 rounded uppercase font-semibold border ${platformColors[v.platform] || platformColors.email}`}>{v.platform}</span>
-                          <span className="text-xs text-gray-500">{v.tone}</span>
+            </div>
+          )}
+
+          {/* ── Reasoning banner ──────────────────────────── */}
+          {result?.reasoning && (
+            <div className="bg-agents-apollo/5 border border-agents-apollo/20 rounded-lg p-4 text-sm text-gray-300 animate-fade-up">
+              <div className="flex items-center gap-2 text-agents-apollo font-semibold text-xs uppercase tracking-wider mb-2">
+                <Wand2 size={14} /> Apollo's Reasoning
+              </div>
+              <p className="leading-relaxed whitespace-pre-wrap">{result.reasoning}</p>
+            </div>
+          )}
+
+          {/* ── Generated Post Cards ──────────────────────── */}
+          <div className="bg-card border border-gray-800 rounded-xl shadow-sm min-h-[400px]">
+            <div className="border-b border-gray-800 p-4 bg-gray-900/40 flex items-center justify-between">
+              <h3 className="font-semibold text-white">Generated Content</h3>
+              {variants.length > 0 && (
+                <span className="text-xs text-gray-500">
+                  {variants.length} piece{variants.length !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              {generating ? (
+                [1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="border border-gray-800 rounded-xl bg-background p-5 animate-pulse"
+                  >
+                    <div className="h-5 bg-gray-700 rounded w-24 mb-4" />
+                    <div className="space-y-2 mb-4">
+                      <div className="h-3 bg-gray-700 rounded" />
+                      <div className="h-3 bg-gray-700 rounded w-3/4" />
+                      <div className="h-3 bg-gray-700 rounded w-1/2" />
+                    </div>
+                    <div className="h-8 bg-gray-700 rounded" />
+                  </div>
+                ))
+              ) : variants.length > 0 ? (
+                variants.map((v, i) => {
+                  const pcfg = PLATFORMS[v.platform] || { label: v.platform, gradient: 'from-gray-600 to-gray-800', badge: 'bg-gray-600/20 text-gray-300 border-gray-600/40' };
+                  return (
+                    <div
+                      key={v.id || i}
+                      className={`relative rounded-xl overflow-hidden border transition-all hover:-translate-y-0.5 hover:shadow-lg ${
+                        v.is_recommended
+                          ? 'border-agents-apollo/50 shadow-[0_0_20px_rgba(167,139,250,0.1)]'
+                          : 'border-gray-800 hover:border-gray-700'
+                      }`}
+                    >
+                      {/* Platform gradient header */}
+                      <div
+                        className={`bg-gradient-to-r ${pcfg.gradient} px-4 py-2.5 flex items-center justify-between`}
+                      >
+                        <span className="text-white font-semibold text-sm flex items-center gap-2">
+                          {pcfg.label}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {v.is_recommended && (
+                            <span className="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-bold backdrop-blur-sm">
+                              ★ Recommended
+                            </span>
+                          )}
+                          <span className="text-white/60 text-[10px] uppercase">
+                            {v.tone}
+                          </span>
                         </div>
-                        <p className="text-sm text-gray-300 mb-4 whitespace-pre-wrap">{v.text}</p>
+                      </div>
+
+                      {/* Post content */}
+                      <div className="bg-background p-5">
+                        <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap mb-4">
+                          {v.text}
+                        </p>
+
+                        {/* Image Prompt indicator */}
                         {v.image_prompt && (
-                          <div className="bg-gray-900 border border-gray-800 rounded p-4 text-center text-gray-500 flex flex-col items-center justify-center mb-4 cursor-pointer hover:bg-gray-800 transition-colors">
-                            <ImageIcon size={24} className="mb-2 opacity-50" />
-                            <span className="text-[10px]">{v.image_prompt.substring(0, 80)}...</span>
+                          <div className="bg-gray-900 border border-gray-800 rounded-md p-3 mb-4 flex items-start gap-2 text-xs text-gray-400">
+                            <Sparkles size={14} className="text-agents-apollo mt-0.5 flex-shrink-0" />
+                            <div>
+                              <span className="font-semibold text-agents-apollo block mb-0.5">Suggested Image</span>
+                              {v.image_prompt}
+                            </div>
                           </div>
                         )}
-                        <div className="flex gap-2">
-                           <button
-                             onClick={() => handleApprove(v.id)}
-                             disabled={approving === v.id || v.status === 'approved'}
-                             className={`flex-1 py-1.5 rounded text-xs font-medium transition-colors flex items-center justify-center ${v.status === 'approved' ? 'bg-success/20 text-success border border-success/30' : v.is_recommended ? 'bg-agents-apollo/10 hover:bg-agents-apollo/20 text-agents-apollo border border-agents-apollo/30' : 'bg-gray-800 hover:bg-gray-700 text-white border border-gray-700'}`}
-                           >
-                             {v.status === 'approved' ? <><Check size={14} className="mr-1" /> Approved</> : approving === v.id ? <Loader2 size={14} className="animate-spin" /> : 'Approve & Queue'}
-                           </button>
+
+                        {/* Hashtags */}
+                        {v.hashtags?.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mb-4">
+                            {v.hashtags.map((tag, t) => (
+                              <span
+                                key={t}
+                                className={`text-[10px] px-2 py-0.5 rounded-full ${pcfg.badge}`}
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Suggested time */}
+                        {v.suggested_time && (
+                          <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-4">
+                            <Clock size={12} />
+                            Post at: {v.suggested_time}
+                          </div>
+                        )}
+
+                        {/* Approve button */}
+                        <button
+                          onClick={() => handleApprove(v.id)}
+                          disabled={approving === v.id || v.status === 'approved'}
+                          className={`w-full py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                            v.status === 'approved'
+                              ? 'bg-success/15 text-success border border-success/30'
+                              : v.is_recommended
+                              ? 'bg-agents-apollo/15 hover:bg-agents-apollo/25 text-agents-apollo border border-agents-apollo/40'
+                              : 'bg-gray-800 hover:bg-gray-700 text-white border border-gray-700'
+                          }`}
+                        >
+                          {v.status === 'approved' ? (
+                            <>
+                              <Check size={14} /> Approved
+                            </>
+                          ) : approving === v.id ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <>
+                              <Check size={14} /> Approve & Queue
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="col-span-2 text-center py-16 text-gray-500">
+                  <Sparkles size={32} className="mx-auto mb-3 opacity-30" />
+                  <p className="text-sm">
+                    Enter a campaign brief and click "Generate Assets" to see
+                    Apollo's creative output.
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Apollo creates platform-specific posts with optimal posting times.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── Content History ────────────────────────────── */}
+          {queue.length > 0 && (
+            <div className="bg-card border border-gray-800 rounded-xl shadow-sm overflow-hidden animate-fade-up">
+              <button
+                onClick={() => setHistoryOpen(!historyOpen)}
+                className="w-full p-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-agents-apollo/20 flex items-center justify-center text-agents-apollo">
+                    <BarChart3 size={16} />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-sm font-semibold text-white">
+                      Content Queue ({queue.length} items)
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      All previously generated content pieces
+                    </p>
+                  </div>
+                </div>
+                {historyOpen ? (
+                  <ChevronUp size={16} className="text-gray-500" />
+                ) : (
+                  <ChevronDown size={16} className="text-gray-500" />
+                )}
+              </button>
+
+              {historyOpen && (
+                <div className="border-t border-gray-800 divide-y divide-gray-800 max-h-[400px] overflow-y-auto">
+                  {queue.map((item, i) => {
+                    const pcfg = PLATFORMS[item.platform] || { label: item.platform, badge: 'bg-gray-600/20 text-gray-300 border-gray-600/40' };
+                    return (
+                      <div
+                        key={item.id || i}
+                        className="p-4 flex items-start gap-4 hover:bg-gray-800/30 transition-colors"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full border ${pcfg.badge}`}>
+                              {pcfg.label}
+                            </span>
+                            <span
+                              className={`text-[10px] px-2 py-0.5 rounded-full border ${
+                                item.status === 'approved'
+                                  ? 'bg-success/15 text-success border-success/30'
+                                  : 'bg-gray-800 text-gray-400 border-gray-700'
+                              }`}
+                            >
+                              {item.status || 'draft'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-400 truncate">
+                            {item.text || item.body || item.title}
+                          </p>
                         </div>
-                     </div>
-                   ))
-                 ) : (
-                   <div className="col-span-2 text-center py-16 text-gray-500">
-                     <Sparkles size={32} className="mx-auto mb-3 opacity-30" />
-                     <p className="text-sm">Enter a campaign brief and click "Generate Assets" to see Apollo's creative output.</p>
-                   </div>
-                 )}
-              </div>
-           </div>
+                        {item.status !== 'approved' && (
+                          <button
+                            onClick={() => handleApprove(item.id)}
+                            disabled={approving === item.id}
+                            className="text-xs px-3 py-1 bg-agents-apollo/10 text-agents-apollo border border-agents-apollo/30 rounded hover:bg-agents-apollo/20 transition-colors"
+                          >
+                            {approving === item.id ? (
+                              <Loader2 size={12} className="animate-spin" />
+                            ) : (
+                              'Approve'
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

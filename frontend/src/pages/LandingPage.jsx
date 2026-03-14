@@ -32,7 +32,7 @@ const ALL_AGENTS = [
     desc: "Context-aware email delivery and instant stakeholder updates.",
   },
   {
-    title: "Muse",
+    title: "Apollo",
     name: "Content",
     icon: PenTool,
     color: "text-pink-400",
@@ -42,8 +42,8 @@ const ALL_AGENTS = [
     desc: "Crafts viral social content for LinkedIn, Instagram, and beyond.",
   },
   {
-    title: "Oracle",
-    name: "Strategist",
+    title: "Athena",
+    name: "Analytic",
     icon: Lightbulb,
     color: "text-amber-400",
     glow: "group-hover:shadow-[0_0_40px_-10px_rgba(251,191,36,0.5)]",
@@ -52,7 +52,7 @@ const ALL_AGENTS = [
     desc: "Synthesizes insights and steers the event toward maximum impact.",
   },
   {
-    title: "Athena",
+    title: "Fortuna",
     name: "Budget",
     icon: Wallet,
     color: "text-rose-400",
@@ -233,7 +233,7 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { label: "Active AI Agents", value: "6+" },
+              { label: "Active AI Agents", value: "5+" },
               { label: "Tasks Automated", value: "100%" },
               { label: "Uptime Guaranteed", value: "99.9%" },
               { label: "System Latency", value: "<1s" },

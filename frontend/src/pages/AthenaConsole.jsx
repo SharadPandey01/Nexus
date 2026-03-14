@@ -3,8 +3,12 @@ import {
   BrainCircuit, TrendingUp, Users, Calendar, AlertTriangle,
   ShieldAlert, Zap, BarChart3, Activity, ArrowRight,
   ChevronDown, ChevronUp, Loader2, RefreshCw,
-  Gauge, Flame, Target, Info
+  Gauge, Flame, Target, Info, MessageSquare, Send
 } from 'lucide-react';
+import {
+  LineChart, Line, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+} from 'recharts';
 import { sendChat } from '../services/api';
 
 // ─── Severity / category color maps ────────────────────────
@@ -28,12 +32,7 @@ const insightIcons = {
   risk:               Zap,
 };
 
-// ─── Animated counter ──────────────────────────────────────
-const AnimatedValue = ({ value, className = '' }) => {
-  const [display, setDisplay] = useState(value);
-  useEffect(() => { setDisplay(value); }, [value]);
-  return <span className={`tabular-nums ${className}`}>{display}</span>;
-};
+const PIE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
 
 // ─── Capacity bar ──────────────────────────────────────────
 const CapacityBar = ({ registrants, capacity }) => {
@@ -50,6 +49,10 @@ const CapacityBar = ({ registrants, capacity }) => {
 };
 
 
+// ─── Module-level Cache to prevent duplicate/excessive API calls ──
+let cachedAthenaData = null;
+let isFetchingAthena = false;
+
 // ═══════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════
@@ -60,30 +63,93 @@ const AthenaConsole = () => {
   const [error, setError] = useState(null);
   const [reasoningOpen, setReasoningOpen] = useState(false);
 
+  // Ask Athena
+  const [question, setQuestion] = useState('');
+  const [asking, setAsking] = useState(false);
+  const [chatHistory, setChatHistory] = useState([]);
+
+  // ── Helper: extract analytics_output from the invoke response ──
+  const extractAnalytics = (res) => {
+    // The invoke endpoint returns { status, result: { analytics_output, ... } }
+    return res?.result?.analytics_output || res?.analytics_output || null;
+  };
+
   // ── Fetch analytics from the orchestrator ──────────────
-  const fetchAnalytics = useCallback(async () => {
+  const fetchAnalytics = useCallback(async (force = false) => {
+    // Return cached data if available and not forcing a refresh
+    if (!force && cachedAthenaData) {
+      setData(cachedAthenaData);
+      setLoading(false);
+      return;
+    }
+    
+    // Prevent duplicate concurrent requests (e.g. from React Strict Mode)
+    if (isFetchingAthena) return;
+    
     setLoading(true);
     setError(null);
+    isFetchingAthena = true;
+
     try {
-      const res = await sendChat('Analyze the current event data and provide a comprehensive intelligence report with insights, risks, capacity analysis, and key metrics.');
-      // The orchestrator returns { status, result } where result is the full NexusState
-      const analyticsOutput = res?.result?.analytics_output;
+      const res = await sendChat('Analyze the current event data and provide a comprehensive intelligence report with insights, risks, capacity analysis, and key metrics.', 'analytics');
+      const analyticsOutput = extractAnalytics(res);
       if (analyticsOutput) {
         setData(analyticsOutput);
+        cachedAthenaData = analyticsOutput; // Update cache
       } else {
-        // Fallback: use mock data so the page is always visually complete
-        setData(MOCK_DATA);
+        setData(null);
+        setError('Agent returned no analytics data. Please ensure an event has been created and data is available.');
       }
     } catch (err) {
-      console.error('[Athena] Fetch failed, using mock data:', err);
-      setData(MOCK_DATA);
-      setError('Backend offline — displaying sample data');
+      console.error('[Athena] Fetch failed:', err);
+      setData(null);
+      setError('Unable to reach Athena — please ensure the backend is running.');
     } finally {
       setLoading(false);
+      isFetchingAthena = false;
     }
   }, []);
 
+  // Fetch on mount (will use cache if available)
   useEffect(() => { fetchAnalytics(); }, [fetchAnalytics]);
+
+  // ── Ask Athena handler ──────────────────────────────────
+  const handleAsk = async (e) => {
+    e?.preventDefault();
+    if (!question.trim() || asking) return;
+    const q = question.trim();
+    setAsking(true);
+    setQuestion('');
+
+    try {
+      const res = await sendChat(q, 'analytics');
+      const output = extractAnalytics(res);
+
+      // Build a rich answer from the response
+      let answer = '';
+      if (output?.reasoning) {
+        answer = output.reasoning;
+      }
+      // Append insights as bullet points if available
+      if (output?.insights?.length) {
+        const insightLines = output.insights.map(i => `${i.icon || '•'} ${i.message}`).join('\n');
+        answer = answer ? `${answer}\n\n**Key Insights:**\n${insightLines}` : insightLines;
+      }
+      if (!answer) {
+        answer = 'Athena analyzed your query but no specific insight was generated. Try a more specific question about attendees, schedule, or capacity.';
+      }
+
+      // If the response has full analytics data, also update the dashboard
+      if (output?.metrics) {
+        setData(output);
+      }
+
+      setChatHistory(prev => [...prev, { question: q, answer }]);
+    } catch {
+      setChatHistory(prev => [...prev, { question: q, answer: 'Unable to reach Athena right now. Please try again.' }]);
+    }
+    setAsking(false);
+  };
 
   // ── Derived values ─────────────────────────────────────
   const metrics      = data?.metrics || {};
@@ -101,6 +167,22 @@ const AthenaConsole = () => {
     { label: 'Capacity Utilization',  value: metrics.capacity_utilization ?? '—', icon: BarChart3,   color: 'text-emerald-400', glow: 'from-emerald-500/20' },
   ];
 
+  // ── Chart data ─────────────────────────────────────────
+  const demographicData = metrics.demographic_breakdown
+    ? Object.entries(metrics.demographic_breakdown).map(([name, value]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        value: parseInt(String(value).replace('%', '')) || 0,
+      }))
+    : [];
+
+  const capacityChartData = capacityWarn.length > 0
+    ? capacityWarn.map(cw => ({
+        name: cw.session_title?.length > 15 ? cw.session_title.slice(0, 15) + '…' : cw.session_title,
+        registrants: cw.registrants,
+        capacity: cw.capacity,
+      }))
+    : [];
+
   // ══════════════════════════════════════════════════════════
   // RENDER
   // ══════════════════════════════════════════════════════════
@@ -117,7 +199,7 @@ const AthenaConsole = () => {
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500/30 to-amber-600/20 flex items-center justify-center border border-orange-500/30 shadow-[0_0_30px_rgba(251,146,60,0.15)]">
                 <BrainCircuit className="text-orange-400" size={28} />
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-black animate-athena-pulse" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-black animate-pulse" />
             </div>
             <div>
               <h1 className="text-3xl font-black tracking-tight text-white">
@@ -131,7 +213,7 @@ const AthenaConsole = () => {
           </div>
 
           <button
-            onClick={fetchAnalytics}
+            onClick={() => fetchAnalytics(true)}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] text-sm text-slate-300 hover:bg-white/[0.08] hover:text-white transition-all disabled:opacity-50"
           >
@@ -157,7 +239,7 @@ const AthenaConsole = () => {
         </div>
       )}
 
-      {/* ═══ DATA SECTIONS (visible once data arrives) ═══ */}
+      {/* ═══ DATA SECTIONS ═══ */}
       {data && (
         <>
           {/* ─── KPI CARDS ─────────────────────────────────── */}
@@ -175,16 +257,138 @@ const AthenaConsole = () => {
                   </div>
                 </div>
                 <div className="relative z-10">
-                  <AnimatedValue
-                    value={kpi.value}
-                    className="text-2xl font-bold tracking-tight text-white"
-                  />
+                  <span className="tabular-nums text-2xl font-bold tracking-tight text-white">
+                    {kpi.value}
+                  </span>
                 </div>
-                {/* hover glow */}
                 <div className={`absolute -bottom-10 -right-10 w-28 h-28 rounded-full bg-gradient-to-t ${kpi.glow} to-transparent opacity-0 group-hover:opacity-100 blur-2xl transition-all duration-500`} />
               </div>
             ))}
           </div>
+
+          {/* ─── ASK ATHENA ───────────────────────────────── */}
+          <div className="glass-card p-1 relative overflow-hidden rounded-2xl border border-orange-500/20 animate-fade-up" style={{ animationDelay: '100ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-transparent to-emerald-500/5" />
+            <div className="bg-black/40 backdrop-blur-xl p-6 rounded-xl relative z-10">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center border border-orange-500/30">
+                  <BrainCircuit className="text-orange-400" size={20} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-orange-400">Ask Athena</h3>
+                  <p className="text-xs text-slate-400">Deep dive into your event data using natural language.</p>
+                </div>
+              </div>
+
+              {/* Chat History */}
+              {chatHistory.length > 0 && (
+                <div className="space-y-3 mb-4 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
+                  {chatHistory.map((item, idx) => (
+                    <div key={idx} className="space-y-2 animate-fade-up">
+                      {/* User question */}
+                      <div className="flex justify-end">
+                        <div className="bg-white/[0.06] border border-white/[0.1] rounded-xl rounded-br-sm px-4 py-2.5 max-w-[80%]">
+                          <p className="text-sm text-slate-200">{item.question}</p>
+                        </div>
+                      </div>
+                      {/* Athena answer */}
+                      <div className="flex justify-start">
+                        <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl rounded-bl-sm px-4 py-2.5 max-w-[90%]">
+                          <p className="text-sm text-orange-100 leading-relaxed whitespace-pre-wrap">{item.answer}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <form onSubmit={handleAsk} className="relative mt-2">
+                <input
+                  type="text"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder={'Ask anything — "Which session has the highest risk?", "Summarize attendance trends", "What should I prioritize today?"'}
+                  className="w-full bg-white/[0.03] border border-white/[0.1] rounded-xl pl-4 pr-12 py-3 text-sm focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all placeholder:text-slate-500 text-white"
+                />
+                <button
+                  type="submit"
+                  disabled={asking || !question.trim()}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-orange-400 hover:bg-orange-400/10 transition-colors disabled:opacity-50"
+                >
+                  {asking ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* ─── CHARTS ROW ───────────────────────────────── */}
+          {(capacityChartData.length > 0 || demographicData.length > 0) && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-up" style={{ animationDelay: '160ms' }}>
+              {/* Capacity vs Registrants Line Chart */}
+              {capacityChartData.length > 0 && (
+                <div className={`glass-card p-6 ${demographicData.length > 0 ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-500 flex items-center gap-2 mb-4">
+                    <BarChart3 size={14} className="text-blue-400" />
+                    Session Capacity vs Registrants
+                  </h3>
+                  <div className="h-[260px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={capacityChartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                        <XAxis dataKey="name" stroke="#ffffff40" tick={{ fill: '#ffffff60', fontSize: 11 }} />
+                        <YAxis stroke="#ffffff40" tick={{ fill: '#ffffff60', fontSize: 11 }} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#000000cc', borderColor: '#ffffff20', borderRadius: '8px' }}
+                          itemStyle={{ color: '#fff' }}
+                        />
+                        <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', color: '#ffffff80' }} />
+                        <Line type="monotone" dataKey="registrants" name="Registrants" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6' }} activeDot={{ r: 6 }} />
+                        <Line type="monotone" dataKey="capacity" name="Capacity" stroke="#10b981" strokeWidth={3} strokeDasharray="5 5" dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+
+              {/* Demographic Pie Chart */}
+              {demographicData.length > 0 && (
+                <div className={`glass-card p-6 flex flex-col ${capacityChartData.length === 0 ? 'lg:col-span-3' : ''}`}>
+                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-500 flex items-center gap-2 mb-4">
+                    <Target size={14} className="text-purple-400" />
+                    Audience Breakdown
+                  </h3>
+                  <div className="flex-1 flex items-center justify-center -mt-2">
+                    <div className="h-[240px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={demographicData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={55}
+                            outerRadius={85}
+                            paddingAngle={4}
+                            dataKey="value"
+                            stroke="none"
+                          >
+                            {demographicData.map((_, index) => (
+                              <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{ backgroundColor: '#000000cc', borderColor: '#ffffff20', borderRadius: '8px' }}
+                            itemStyle={{ color: '#fff' }}
+                            formatter={(v) => `${v}%`}
+                          />
+                          <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -197,7 +401,7 @@ const AthenaConsole = () => {
 
               {insights.length === 0 ? (
                 <div className="glass-card p-8 text-center text-slate-500 text-sm">
-                  No insights generated yet.
+                  No insights generated yet. Click "Re-Analyze" above.
                 </div>
               ) : (
                 <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
@@ -229,7 +433,6 @@ const AthenaConsole = () => {
                             </p>
                           </div>
                         </div>
-                        {/* subtle left accent */}
                         <div className={`absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl ${sev.dot} opacity-60`} />
                       </div>
                     );
@@ -331,12 +534,10 @@ const AthenaConsole = () => {
               </h2>
               <div className="glass-card p-5">
                 <div className="relative">
-                  {/* vertical line */}
                   <div className="absolute left-[18px] top-0 bottom-0 w-px bg-gradient-to-b from-orange-500/40 via-purple-500/30 to-transparent" />
-
                   <div className="space-y-4">
                     {/* Origin node */}
-                    <div className="flex items-center gap-4 relative animate-cascade-in">
+                    <div className="flex items-center gap-4 relative">
                       <div className="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center z-10">
                         <BrainCircuit size={16} className="text-orange-400" />
                       </div>
@@ -357,7 +558,7 @@ const AthenaConsole = () => {
                       return (
                         <div
                           key={idx}
-                          className="flex items-start gap-4 relative animate-cascade-in"
+                          className="flex items-start gap-4 relative animate-fade-up"
                           style={{ animationDelay: `${(idx + 1) * 150}ms` }}
                         >
                           <div className={`w-9 h-9 rounded-xl ${ac.bg} ${ac.border} border flex items-center justify-center z-10`}>
@@ -386,33 +587,12 @@ const AthenaConsole = () => {
             </div>
           )}
 
-          {/* ─── DEMOGRAPHIC BREAKDOWN (if available) ──────── */}
-          {metrics.demographic_breakdown && (
-            <div className="animate-fade-up">
-              <h2 className="text-sm font-black uppercase tracking-widest text-slate-500 flex items-center gap-2 mb-3">
-                <Target size={14} className="text-blue-400" />
-                Demographic Breakdown
-              </h2>
-              <div className="glass-card p-5">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {Object.entries(metrics.demographic_breakdown).map(([key, val], idx) => (
-                    <div key={key} className="text-center p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                      <p className="text-2xl font-bold text-white mb-1">{val}</p>
-                      <p className="text-xs text-slate-500 capitalize font-medium">{key}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* ─── ATHENA'S REASONING (collapsible) ──────────── */}
           {reasoning && (
             <div className="animate-fade-up">
               <button
                 onClick={() => setReasoningOpen(!reasoningOpen)}
                 className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-300 transition-colors mb-2 group"
-                data-no-lift
               >
                 <BrainCircuit size={14} className="text-orange-400/60 group-hover:text-orange-400 transition-colors" />
                 <span className="font-semibold">Athena's Reasoning</span>
@@ -420,7 +600,7 @@ const AthenaConsole = () => {
               </button>
 
               {reasoningOpen && (
-                <div className="glass-card p-5 border-orange-500/10 animate-panel-in">
+                <div className="glass-card p-5 border-orange-500/10 animate-fade-up">
                   <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">
                     {reasoning}
                   </p>
@@ -429,6 +609,21 @@ const AthenaConsole = () => {
             </div>
           )}
         </>
+      )}
+
+      {/* ─── EMPTY STATE (no data, not loading) ──────────── */}
+      {!data && !loading && !error && (
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+            <BrainCircuit className="text-orange-400/60" size={28} />
+          </div>
+          <div className="text-center">
+            <p className="text-white font-semibold">No Analytics Available</p>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm">
+              Create an event and add participant data to unlock Athena's intelligence engine. Click "Re-Analyze" to try again.
+            </p>
+          </div>
+        </div>
       )}
 
       {/* ─── FULL-PAGE LOADING OVERLAY ───────────────────── */}
@@ -448,45 +643,6 @@ const AthenaConsole = () => {
       )}
     </div>
   );
-};
-
-
-// ═══════════════════════════════════════════════════════════
-// MOCK DATA — Used when backend is offline
-// ═══════════════════════════════════════════════════════════
-
-const MOCK_DATA = {
-  insights: [
-    { type: 'registration_trend', icon: '📊', message: 'Registration velocity is at 23 signups/day. At this rate, you will reach 85% capacity by event day. Consider boosting promotions in the final week.', severity: 'info' },
-    { type: 'capacity_warning', icon: '⚠️', message: 'AI Keynote session has 145 registrants but Room A only seats 120. Overflow risk detected — immediate action recommended.', severity: 'critical' },
-    { type: 'engagement', icon: '🔥', message: 'The "Hands-on ML Workshop" track is trending — 3x more saves than average. Consider adding a second session or larger venue.', severity: 'info' },
-    { type: 'demographic', icon: '🎯', message: 'Audience skews 62% students and 28% professionals. Tailor networking events to encourage cross-pollination between groups.', severity: 'info' },
-    { type: 'risk', icon: '⚡', message: '3 invited speakers have not confirmed attendance. If unresolved within 48 hours, replacement sessions should be prepared.', severity: 'warning' },
-  ],
-  risk_items: [
-    { risk: 'Speaker Dr. Patel has not responded to 2 confirmation emails sent via Hermes.', severity: 'high', recommendation: 'Escalate with a phone call and prepare backup speaker from waitlist.' },
-    { risk: 'No backup venue allocated for outdoor Networking Mixer in case of rain.', severity: 'medium', recommendation: 'Reserve Conference Hall C as a rain contingency — low utilization on Day 2 afternoon.' },
-    { risk: 'Lunch catering order only covers 400 meals, but projected attendance is 480.', severity: 'high', recommendation: 'Contact caterer to increase order by 25% buffer (total 600 meals).' },
-  ],
-  capacity_warnings: [
-    { session_title: 'AI Keynote', venue: 'Room A', registrants: 145, capacity: 120, recommendation: 'Move to Main Hall (250 seats) or enable overflow streaming in Room D.' },
-    { session_title: 'Cloud Workshop', venue: 'Lab 2', registrants: 38, capacity: 40, recommendation: 'At 95% — monitor closely. Open waitlist for Lab 3 if registrations continue.' },
-    { session_title: 'Design Thinking', venue: 'Room C', registrants: 72, capacity: 80, recommendation: 'Healthy at 90%. No action needed.' },
-  ],
-  metrics: {
-    total_participants: 482,
-    total_sessions: 18,
-    capacity_utilization: '78%',
-    risk_count: 3,
-    most_popular_session: 'AI Keynote',
-    demographic_breakdown: { students: '62%', professionals: '28%', speakers: '6%', other: '4%' },
-  },
-  cascade_to: [
-    { agent: 'apollo', task: 'generate_urgency_content', data: { insight: 'Registration velocity 23% below target — need promotional push' } },
-    { agent: 'hermes', task: 'send_speaker_followup', data: { insight: '3 speakers unconfirmed — draft follow-up emails' } },
-    { agent: 'chronos', task: 'suggest_room_swap', data: { insight: 'AI Keynote exceeds Room A capacity — suggest venue change' } },
-  ],
-  reasoning: 'Athena analyzed 482 participant records, 18 scheduled sessions, and 3 venue configurations. The analysis identified a critical capacity mismatch for the AI Keynote (121% utilization), flagged 3 unconfirmed speakers as a high-priority risk, and detected registration velocity trending 23% below the target needed for full attendance. Cascading tasks were generated for Apollo (urgency promotional content), Hermes (speaker follow-up emails), and Chronos (room swap optimization). Confidence level: HIGH based on structured data quality.',
 };
 
 export default AthenaConsole;

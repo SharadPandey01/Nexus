@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import { User, Building2, Phone, Mail, Edit3, Save, X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { User, Building2, Phone, Mail, Edit3, Save, X, Calendar, Users, Loader2, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { listEvents, activateEvent } from "../services/api";
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -13,6 +15,26 @@ const Profile = () => {
   // To allow canceling, we keep a backup of the data
   const [backup, setBackup] = useState({ ...profile });
   const [errors, setErrors] = useState({});
+  const [events, setEvents] = useState([]);
+  const [isActivating, setIsActivating] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    listEvents()
+      .then(res => setEvents(res?.events || []))
+      .catch(err => console.error("Failed to fetch events:", err));
+  }, []);
+
+  const handleActivate = async (eventId) => {
+    setIsActivating(eventId);
+    try {
+      await activateEvent(eventId);
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Failed to activate event:", err);
+      setIsActivating(null);
+    }
+  };
 
   const validate = () => {
     const newErrors = {};
@@ -167,6 +189,80 @@ const Profile = () => {
             </form>
           </div>
         </div>
+
+        {/* EVENT HISTORY SECTION */}
+        <div className="mt-16 animate-fade-up" style={{ animationDelay: '150ms' }}>
+          <header className="mb-6 ml-2">
+            <h2 className="text-2xl font-bold text-white tracking-tight">Event History</h2>
+            <p className="text-slate-500 font-light text-sm">Switch context to any past or active event</p>
+          </header>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {events.length === 0 ? (
+              <div className="col-span-full p-8 rounded-2xl border border-white/5 bg-white/[0.02] text-center text-slate-500 text-sm">
+                No events found. Start by organizing a new event.
+              </div>
+            ) : (
+              events.map((evt) => {
+                const isActive = isActivating === evt.id;
+                const statusColor = evt.status === 'completed' ? 'text-gray-400' : 'text-emerald-400';
+                const statusBg = evt.status === 'completed' ? 'bg-gray-400/10' : 'bg-emerald-400/10';
+
+                return (
+                  <div key={evt.id} className="relative group overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent backdrop-blur-md rounded-2xl border border-white/[0.08] group-hover:border-white/[0.15] transition-all duration-300" />
+                    
+                    <div className="relative p-6 flex flex-col h-full gap-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-lg font-bold text-white mb-1 group-hover:text-blue-400 transition-colors truncate max-w-[200px]" title={evt.name}>
+                            {evt.name || "Unnamed Event"}
+                          </h3>
+                          <div className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full inline-flex ${statusColor} ${statusBg}`}>
+                            {evt.status || 'planning'}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleActivate(evt.id)}
+                          disabled={isActive}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-lg border ${
+                            isActive 
+                              ? "bg-white/10 text-white/50 border-transparent cursor-wait" 
+                              : "bg-blue-600/20 text-blue-400 border-blue-500/30 hover:bg-blue-600/40 hover:text-white"
+                          }`}
+                        >
+                          {isActive ? (
+                            <><Loader2 size={14} className="animate-spin" /> Loading...</>
+                          ) : (
+                            <>Activate <ArrowRight size={14} /></>
+                          )}
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-4 mt-auto pt-4 border-t border-white/[0.05] text-slate-400 text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar size={14} className="text-slate-500" />
+                          <span>{evt.start_date ? new Date(evt.start_date).toLocaleDateString() : 'TBD'}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Users size={14} className="text-slate-500" />
+                          <span>
+                            {(() => {
+                              try {
+                                return JSON.parse(evt.config_json)?.expected_attendees || 0;
+                              } catch { return 0; }
+                            })()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   );
