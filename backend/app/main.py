@@ -14,6 +14,8 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+from fastapi.responses import JSONResponse
 
 from app.config import settings
 
@@ -87,6 +89,7 @@ async def lifespan(app: FastAPI):
         print(f"⚠️ Failed to auto-load event on startup: {e}")
 
     print("✅ Nexus Backend is ready!")
+    print(f"🌍 CORS Origins: {settings.cors_origins_list}")
     print(f"📖 API docs: http://localhost:{settings.PORT}/docs")
 
     # ---- Hand control to the running server ----
@@ -125,17 +128,23 @@ app = FastAPI(
 # Without this, the browser would block all frontend→backend requests.
 # ============================================================================
 
+# Forwarded headers (essential for proxy environments like Render)
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+
 app.add_middleware(
     CORSMiddleware,
-    # Which origins (frontend URLs) are allowed to call this API
-    allow_origins=settings.cors_origins_list,
-    # Allow cookies and auth headers to be sent
+    # Allow all origins for debug if strings match poorly, or use the list
+    allow_origins=settings.cors_origins_list if settings.cors_origins_list != [""] else ["*"],
     allow_credentials=True,
-    # Allow all HTTP methods (GET, POST, PUT, DELETE, etc.)
     allow_methods=["*"],
-    # Allow all headers (Content-Type, Authorization, etc.)
     allow_headers=["*"],
+    expose_headers=["*"],
 )
+
+# Catch-all OPTIONS for poorly handled preflights
+@app.options("/{rest_of_path:path}")
+async def preflight_handler(rest_of_path: str):
+    return JSONResponse(content={"status": "ok"}, headers={"Access-Control-Allow-Origin": "*"})
 
 
 # ============================================================================
