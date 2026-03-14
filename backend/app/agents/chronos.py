@@ -198,7 +198,7 @@ Generate an optimized schedule. Detect and resolve any conflicts. If this modifi
     try:
         llm = ChatGoogleGenerativeAI(
             model=settings.LLM_MODEL,
-            google_api_key=settings.GEMINI_API_KEY,
+            api_key=settings.GEMINI_API_KEY,
             temperature=0.3,  # Lower temperature for structured scheduling (more deterministic)
         )
 

@@ -167,7 +167,7 @@ Generate platform-appropriate content. **CRITICAL: Generate EXACTLY 1 content pi
     try:
         llm = ChatGoogleGenerativeAI(
             model=settings.LLM_MODEL,
-            google_api_key=settings.GEMINI_API_KEY,
+            api_key=settings.GEMINI_API_KEY,
             temperature=0.7,  # Higher temperature for creative content
         )
 

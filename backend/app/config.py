@@ -78,7 +78,8 @@ class Settings(BaseSettings):
 
     class Config:
         # Tell Pydantic Settings to load from this .env file
-        env_file = ".env"
+        # Check both current directory and parent directory
+        env_file = (".env", "../.env")
         # If .env doesn't exist, don't crash — just use defaults
         env_file_encoding = "utf-8"
         # Allow extra fields in .env without raising errors
