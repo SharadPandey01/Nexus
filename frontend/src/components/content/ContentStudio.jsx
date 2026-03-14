@@ -43,10 +43,11 @@ const ContentStudio = () => {
   const [queue, setQueue] = useState([]);
   const [approving, setApproving] = useState(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [expandedQueueItem, setExpandedQueueItem] = useState(null);
 
   // Load existing content queue
   useEffect(() => {
-    getContentQueue()
+    getContentQueue('social_post')
       .then((data) => {
         const items = data?.content || data || [];
         setQueue(Array.isArray(items) ? items : []);
@@ -475,40 +476,74 @@ const ContentStudio = () => {
                 <div className="border-t border-gray-800 divide-y divide-gray-800 max-h-[400px] overflow-y-auto">
                   {queue.map((item, i) => {
                     const pcfg = PLATFORMS[item.platform] || { label: item.platform, badge: 'bg-gray-600/20 text-gray-300 border-gray-600/40' };
+                    const isExpanded = expandedQueueItem === (item.id || i);
                     return (
                       <div
                         key={item.id || i}
-                        className="p-4 flex items-start gap-4 hover:bg-gray-800/30 transition-colors"
+                        className="p-4 hover:bg-gray-800/30 transition-colors cursor-pointer"
+                        onClick={() => setExpandedQueueItem(isExpanded ? null : (item.id || i))}
                       >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full border ${pcfg.badge}`}>
-                              {pcfg.label}
-                            </span>
-                            <span
-                              className={`text-[10px] px-2 py-0.5 rounded-full border ${
-                                item.status === 'approved'
-                                  ? 'bg-success/15 text-success border-success/30'
-                                  : 'bg-gray-800 text-gray-400 border-gray-700'
-                              }`}
-                            >
-                              {item.status || 'draft'}
-                            </span>
+                        <div className="flex items-start gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full border ${pcfg.badge}`}>
+                                {pcfg.label}
+                              </span>
+                              <span
+                                className={`text-[10px] px-2 py-0.5 rounded-full border ${
+                                  item.status === 'approved' || item.status === 'published'
+                                    ? 'bg-success/15 text-success border-success/30'
+                                    : item.status === 'rejected'
+                                    ? 'bg-error/15 text-error border-error/30'
+                                    : 'bg-gray-800 text-gray-400 border-gray-700'
+                                }`}
+                              >
+                                {item.status || 'draft'}
+                              </span>
+                            </div>
+                            {isExpanded ? (
+                              <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap mt-2">
+                                {item.text || item.body || item.title}
+                              </p>
+                            ) : (
+                              <p className="text-xs text-gray-400 truncate">
+                                {item.text || item.body || item.title}
+                              </p>
+                            )}
+                            {isExpanded && item.hashtags && (
+                              <div className="flex flex-wrap gap-1.5 mt-3">
+                                {(Array.isArray(item.hashtags) ? item.hashtags : String(item.hashtags).split(',')).map((tag, t) => (
+                                  <span key={t} className={`text-[10px] px-2 py-0.5 rounded-full ${pcfg.badge}`}>
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                          <p className="text-xs text-gray-400 truncate">
-                            {item.text || item.body || item.title}
-                          </p>
+                          {!isExpanded && item.status !== 'approved' && item.status !== 'published' && item.status !== 'rejected' && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleApprove(item.id); }}
+                              disabled={approving === item.id}
+                              className="text-xs px-3 py-1 bg-agents-apollo/10 text-agents-apollo border border-agents-apollo/30 rounded hover:bg-agents-apollo/20 transition-colors"
+                            >
+                              {approving === item.id ? (
+                                <Loader2 size={12} className="animate-spin" />
+                              ) : (
+                                'Approve'
+                              )}
+                            </button>
+                          )}
                         </div>
-                        {item.status !== 'approved' && (
+                        {isExpanded && item.status !== 'approved' && item.status !== 'published' && item.status !== 'rejected' && (
                           <button
-                            onClick={() => handleApprove(item.id)}
+                            onClick={(e) => { e.stopPropagation(); handleApprove(item.id); }}
                             disabled={approving === item.id}
-                            className="text-xs px-3 py-1 bg-agents-apollo/10 text-agents-apollo border border-agents-apollo/30 rounded hover:bg-agents-apollo/20 transition-colors"
+                            className="mt-3 w-full text-xs py-2 bg-agents-apollo/10 text-agents-apollo border border-agents-apollo/30 rounded-lg hover:bg-agents-apollo/20 transition-colors flex items-center justify-center gap-1.5"
                           >
                             {approving === item.id ? (
                               <Loader2 size={12} className="animate-spin" />
                             ) : (
-                              'Approve'
+                              <><Check size={12} /> Approve & Queue</>
                             )}
                           </button>
                         )}

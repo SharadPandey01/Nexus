@@ -120,6 +120,31 @@ async def draft_emails(req: DraftRequest):
     result = await hermes_agent(state)
     output = result.get("mailer_output", {})
 
+    # ---- Persist approval items (mirrors evaluate_and_cascade logic) ----
+    if output.get("requires_approval"):
+        approval_items = output.get("approval_items", [])
+        event_obj = state_manager.get_event()
+        event_id = event_obj.get("id", "default") if event_obj else "default"
+
+        from app.repository import insert_approval
+        from app.api.websocket import manager as ws_manager
+        import asyncio
+
+        insert_tasks = []
+        for item in approval_items:
+            item["event_id"] = event_id
+            state_manager.add_approval(item)
+            insert_tasks.append(insert_approval(event_id, item))
+
+        if insert_tasks:
+            await asyncio.gather(*insert_tasks)
+
+        # Broadcast to frontend via WebSocket
+        try:
+            await ws_manager.send_approval_request(approval_items)
+        except Exception:
+            pass
+
     return {
         "status": "success",
         "preview_emails": output.get("preview_emails", []),

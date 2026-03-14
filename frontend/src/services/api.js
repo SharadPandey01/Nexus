@@ -79,7 +79,11 @@ export const generateContent = (brief, platforms, tone) =>
     method: 'POST',
     body: JSON.stringify({ brief, platforms, tone }),
   });
-export const getContentQueue = () => request('/content/queue');
+export const getContentQueue = (contentType = null) => {
+  const params = new URLSearchParams();
+  if (contentType) params.append('content_type', contentType);
+  return request(`/content/queue${params.toString() ? `?${params.toString()}` : ''}`);
+};
 export const approveContent = (id) =>
   request(`/content/queue/${id}/approve`, { method: 'POST' });
 

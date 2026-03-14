@@ -112,12 +112,13 @@ const ScheduleView = () => {
   };
 
   // ── Derive rooms from sessions ──────────────────────────
+  const [activeDay, setActiveDay] = useState(null);
+
   const rooms = [...new Set(sessions.map(s => s.venue || s.room))].filter(Boolean);
   if (rooms.length === 0) rooms.push('Main Hall', 'Room A', 'Room B');
 
   // Derive days
   const days = [...new Set(sessions.map(s => s.day))].filter(Boolean).sort((a, b) => a - b);
-  const [activeDay, setActiveDay] = useState(null);
   const currentDay = activeDay || (days.length > 0 ? days[0] : 1);
 
   const daySessions = sessions.filter(s => s.day === currentDay);

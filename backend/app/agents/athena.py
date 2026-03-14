@@ -24,7 +24,7 @@ import uuid
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from app.utils.llm import get_gemini_llm, call_llm_with_retry
 from app.config import settings
 from app.state.state_manager import state_manager
 
@@ -190,16 +190,10 @@ Analyze this data comprehensively. Provide insights, detect risks, check capacit
 
     # ---- Call the LLM ----
     try:
-        llm = ChatGoogleGenerativeAI(
-            model=settings.LLM_MODEL,
-            api_key=settings.GEMINI_API_KEY,
-            temperature=0.3,  # Lower temperature for analytical accuracy
-        )
-
-        response = await llm.ainvoke([
+        response = await call_llm_with_retry([
             {"role": "system", "content": ATHENA_SYSTEM_PROMPT},
             {"role": "human", "content": user_message},
-        ])
+        ], temperature=0.3)
 
         # ---- Parse the LLM response ----
         raw_text = response.content.strip()

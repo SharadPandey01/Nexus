@@ -1,0 +1,16 @@
+name,email,organization,role,track
+Sarah Chen,sarah.chen@ai-institute.org,Institute of AI,speaker,Track A
+Jensen Huang,jensen@nvidia.com,NVIDIA,speaker,Track B
+Sundar Pichai,sundar@google.com,Google,speaker,Track A
+Guillermo Rauch,rauchg@vercel.com,Vercel,speaker,Track B
+Marc Benioff,marc@salesforce.com,Salesforce,vip,All Tracks
+Sam Altman,sam@openai.com,OpenAI,vip,Track A
+Demis Hassabis,demis@deepmind.com,Google Deepmind,vip,Track B
+Alex Rivera,arivera@techcrunch.com,TechCrunch,press,Track A
+Jordan Smith,jsmith@theverge.com,The Verge,press,Track B
+Michael Brown,mbrown@mit.edu,MIT,attendee,Track A
+Emily Davis,edavis@stanford.edu,Stanford,attendee,Track B
+David Wilson,dwilson@startup.io,Startup.io,attendee,Track A
+Lisa Zhang,lzhang@fintech.com,FinTech Corp,attendee,Track B
+Kevin Lee,klee@devscale.com,DevScale,attendee,Track A
+Sarah Jones,sjones@cloudsolutions.com,Cloud Solutions,attendee,Track B

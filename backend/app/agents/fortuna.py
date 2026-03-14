@@ -23,7 +23,7 @@ import uuid
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from app.utils.llm import get_gemini_llm, call_llm_with_retry
 from app.config import settings
 from app.state.state_manager import state_manager
 
@@ -188,6 +188,15 @@ async def fortuna_agent(state: dict) -> dict:
             "Do NOT invent new random numbers, change the total budget, or replace the sponsor targets unless the Organizer's Request or Cascade Request explicitly demands a change or recalculation."
         )
 
+    # Build schedule summary
+    schedule_summary = "No schedule data available."
+    if schedule:
+        session_count = len(schedule)
+        session_titles = [s.get("title", s.get("name", "Untitled")) for s in schedule[:5]]
+        schedule_summary = f"{session_count} sessions scheduled: {', '.join(session_titles)}"
+        if session_count > 5:
+            schedule_summary += f" ... and {session_count - 5} more"
+
     # Build the user message
     user_message = f"""Analyze the finances and sponsorship opportunities for:
 
@@ -204,16 +213,10 @@ Provide a comprehensive financial overview with budget tracking, spending alerts
 
     # ---- Call the LLM ----
     try:
-        llm = ChatGoogleGenerativeAI(
-            model=settings.LLM_MODEL,
-            api_key=settings.GEMINI_API_KEY,
-            temperature=0.3,  # Lower temperature for financial accuracy
-        )
-
-        response = await llm.ainvoke([
+        response = await call_llm_with_retry([
             {"role": "system", "content": FORTUNA_SYSTEM_PROMPT},
             {"role": "human", "content": user_message},
-        ])
+        ], temperature=0.1)
 
         # ---- Parse the LLM response ----
         raw_text = response.content.strip()

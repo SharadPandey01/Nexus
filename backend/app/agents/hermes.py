@@ -28,7 +28,7 @@ import uuid
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from app.utils.llm import get_gemini_llm, call_llm_with_retry
 from app.config import settings
 from app.state.state_manager import state_manager
 
@@ -179,13 +179,7 @@ Draft professional emails, segment the audience if needed, and provide preview s
 
     # ---- Call the LLM ----
     try:
-        llm = ChatGoogleGenerativeAI(
-            model=settings.LLM_MODEL,
-            api_key=settings.GEMINI_API_KEY,
-            temperature=0.4,  # Moderate creativity for professional emails
-        )
-
-        response = await llm.ainvoke([
+        response = await call_llm_with_retry([
             {"role": "system", "content": HERMES_SYSTEM_PROMPT},
             {"role": "human", "content": user_message},
         ])
@@ -239,6 +233,30 @@ Draft professional emails, segment the audience if needed, and provide preview s
         ready_to_send = parsed.get("ready_to_send", True)
         reasoning = parsed.get("reasoning", "Emails drafted successfully by Hermes.")
 
+        # ---- Persist email drafts to database ----
+        from app.repository import insert_content
+        event = state_manager.get_event()
+        event_id = event.get("id", "default") if event else "default"
+        
+        draft_ids = []
+        for preview in preview_emails:
+            cid = f"email_{uuid.uuid4().hex[:8]}"
+            draft_ids.append(cid)
+            content_record = {
+                "id": cid,
+                "content_type": "email_draft",
+                "platform": "email",
+                "title": preview.get("subject", ""),
+                "body": preview.get("body", ""),
+                "status": "draft",
+                "reasoning": reasoning,
+            }
+            try:
+                await insert_content(event_id, content_record)
+                state_manager.add_content(content_record)
+            except Exception as db_err:
+                print(f"[Hermes] DB insert for email draft failed: {db_err}")
+
         # ---- Build approval items ----
         approval_items = [
             {
@@ -252,26 +270,10 @@ Draft professional emails, segment the audience if needed, and provide preview s
                     "recipient_count": participants_processed,
                     "invalid_count": len(invalid_emails),
                     "sample_body": preview_emails[0]["body"][:150] if preview_emails else "",
+                    "content_ids": draft_ids,
                 },
             }
         ]
-
-        # ---- Persist email drafts to database ----
-        from app.repository import insert_content
-        event = state_manager.get_event()
-        event_id = event.get("id", "default") if event else "default"
-        for preview in preview_emails:
-            try:
-                await insert_content(event_id, {
-                    "content_type": "email_draft",
-                    "platform": "email",
-                    "title": preview.get("subject", ""),
-                    "body": preview.get("body", ""),
-                    "status": "draft",
-                    "reasoning": reasoning,
-                })
-            except Exception as db_err:
-                print(f"[Hermes] DB insert for email draft failed: {db_err}")
 
         return {
             "mailer_output": {

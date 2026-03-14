@@ -193,6 +193,28 @@ async def get_content_queue(event_id: str) -> List[dict]:
     return [dict(row) for row in await cursor.fetchall()]
 
 
+async def update_content_status(content_ids: List[str], new_status: str) -> int:
+    """
+    Bulk updates the status of specific content items (e.g. from 'draft' to 'published' or 'rejected').
+    Returns the number of rows updated.
+    """
+    if not content_ids:
+        return 0
+        
+    db = await get_db()
+    now = datetime.now().isoformat()
+    
+    # Create the IN clause placeholders (?, ?, ?)
+    placeholders = ",".join("?" * len(content_ids))
+    query = f"UPDATE content_queue SET status = ?, updated_at = ? WHERE id IN ({placeholders})"
+    
+    params = [new_status, now] + content_ids
+    
+    cursor = await db.execute(query, tuple(params))
+    await db.commit()
+    return cursor.rowcount
+
+
 # ============================================================================
 # APPROVALS
 # ============================================================================

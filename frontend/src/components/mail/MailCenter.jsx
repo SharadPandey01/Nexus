@@ -2,10 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import {
   UploadCloud, FileSpreadsheet, Send, Filter, Eye, Loader2, Sparkles,
   Wand2, Users, AlertTriangle, Check, ChevronDown, ChevronUp, Mail,
-  Clock, User
+  Clock, User, RefreshCw
 } from 'lucide-react';
 import {
-  getParticipants, uploadParticipants, draftEmails, personalizeEmails, sendBatch
+  getParticipants, uploadParticipants, draftEmails, personalizeEmails, sendBatch, getContentQueue
 } from '../../services/api';
 
 const MailCenter = () => {
@@ -24,9 +24,13 @@ const MailCenter = () => {
   const [template, setTemplate] = useState('');
   const [previewIdx, setPreviewIdx] = useState(0);
 
+  const [queue, setQueue] = useState([]);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [expandedQueueItem, setExpandedQueueItem] = useState(null);
+
   const fileRef = useRef(null);
 
-  // Load participants
+  // Load participants and email queue
   useEffect(() => {
     getParticipants()
       .then((data) => {
@@ -35,6 +39,13 @@ const MailCenter = () => {
       })
       .catch(() => setParticipants([]))
       .finally(() => setLoading(false));
+
+    getContentQueue('email_draft')
+      .then((data) => {
+        const items = data?.content || data || [];
+        setQueue(Array.isArray(items) ? items : []);
+      })
+      .catch(() => setQueue([]));
   }, []);
 
   // ── Upload handlers ─────────────────────────────────────
@@ -66,6 +77,10 @@ const MailCenter = () => {
       setDraftResult(res);
       if (res?.email_template) setTemplate(res.email_template);
       setPreviewIdx(0);
+
+      // Refresh queue
+      const qRes = await getContentQueue('email_draft');
+      setQueue(qRes?.content || qRes || []);
     } catch (e) {
       console.error('Draft failed:', e);
     }
@@ -508,6 +523,86 @@ const MailCenter = () => {
               </table>
             </div>
           </div>
+
+          {/* Email Queue History */}
+          {queue.length > 0 && (
+            <div className="bg-card border border-gray-800 rounded-xl shadow-sm overflow-hidden animate-fade-up">
+              <button
+                onClick={() => setHistoryOpen(!historyOpen)}
+                className="w-full p-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-agents-hermes/20 flex items-center justify-center text-agents-hermes">
+                    <Mail size={16} />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-sm font-semibold text-white">
+                      Email Queue ({queue.length} items)
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      All previously drafted and sent emails
+                    </p>
+                  </div>
+                </div>
+                {historyOpen ? (
+                  <ChevronUp size={16} className="text-gray-500" />
+                ) : (
+                  <ChevronDown size={16} className="text-gray-500" />
+                )}
+              </button>
+
+              {historyOpen && (
+                <div className="border-t border-gray-800 divide-y divide-gray-800 max-h-[400px] overflow-y-auto w-full">
+                  {queue.map((item, i) => {
+                    const isExpanded = expandedQueueItem === (item.id || i);
+                    return (
+                      <div
+                        key={item.id || i}
+                        className="p-4 hover:bg-gray-800/30 transition-colors cursor-pointer"
+                        onClick={() => setExpandedQueueItem(isExpanded ? null : (item.id || i))}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-white font-medium text-sm truncate flex-1">
+                            {item.title || item.subject || 'Untitled Email'}
+                          </span>
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full border shrink-0 ${
+                              item.status === 'sent' || item.status === 'published'
+                                ? 'bg-success/15 text-success border-success/30'
+                                : item.status === 'rejected'
+                                ? 'bg-error/15 text-error border-error/30'
+                                : 'bg-gray-800 text-gray-400 border-gray-700'
+                            }`}
+                          >
+                            {item.status || 'draft'}
+                          </span>
+                          <Eye size={14} className={`shrink-0 transition-colors ${isExpanded ? 'text-agents-hermes' : 'text-gray-600'}`} />
+                        </div>
+                        {isExpanded ? (
+                          <div className="mt-3 bg-background/50 rounded-lg border border-gray-800 overflow-hidden">
+                            <div className="bg-agents-hermes/5 border-b border-agents-hermes/15 px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <Mail size={14} className="text-agents-hermes" />
+                                <span className="text-sm font-semibold text-white">{item.title || item.subject || 'Untitled Email'}</span>
+                              </div>
+                            </div>
+                            <div className="px-4 py-4 text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">
+                              {item.body || item.text || ''}
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-400 line-clamp-2 mt-1">
+                            {item.text || item.body || ''}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       </div>
     </div>

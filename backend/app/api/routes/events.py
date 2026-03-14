@@ -83,6 +83,7 @@ async def create_event(request: CreateEventRequest):
             "key_activities": parsed.get("key_activities", []),
             "venues": parsed.get("venues"),
             "original_prompt": prompt.strip(),
+            "days": _calculate_days(parsed.get("start_date"), parsed.get("end_date")),
         }),
         "venues": parsed.get("venues") or [],
         "created_at": now,
@@ -119,6 +120,21 @@ async def create_event(request: CreateEventRequest):
         "event": event,
         "parsed_details": parsed,
     }
+
+
+def _calculate_days(start_date: Optional[str], end_date: Optional[str]) -> int:
+    """Calculate the number of days between two dates, inclusive."""
+    if not start_date:
+        return 1
+    if not end_date:
+        return 1
+    try:
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        end = datetime.strptime(end_date, "%Y-%m-%d")
+        days = (end - start).days + 1
+        return max(1, days)
+    except Exception:
+        return 1
 
 
 # ============================================================================

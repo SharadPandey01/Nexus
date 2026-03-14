@@ -147,17 +147,34 @@ async def resolve_approval(
         "decision": decision,
     })
 
-    # If approved, trigger the agent to execute the action
-    if decision == "approve":
-        from app.state.event_dispatcher import event_dispatcher, EventType
-        import asyncio
+    # =========================================================================
+    # DETERMINISTIC EXECUTION
+    # Instead of sending a vague prompt back to the LLM orchestrator,
+    # we explicitly update the backend database state based on what was approved.
+    # =========================================================================
+    if decision in ["approve", "reject"]:
+        import json
+        from app.repository import update_content_status
         
         agent_name = approval_record.get("agent", "")
-        if agent_name == "hermes":
-            asyncio.create_task(event_dispatcher.dispatch(EventType.EMAIL_APPROVED, data={"approval_id": approval_id}))
-        elif agent_name == "apollo":
-            asyncio.create_task(event_dispatcher.dispatch(EventType.CONTENT_APPROVED, data={"approval_id": approval_id}))
-        # Chronos schedule finalization could go here as well if required
+        preview_data = json.loads(approval_record.get("preview_json", "{}"))
+        content_ids = preview_data.get("content_ids", [])
+        
+        if content_ids:
+            if agent_name == "hermes":
+                # For emails, 'approve' means they are sent. 
+                # (In this hackathon state, we just mark them 'sent')
+                new_status = "sent" if decision == "approve" else "rejected"
+                await update_content_status(content_ids, new_status)
+                
+            elif agent_name == "apollo":
+                # For social posts, 'approve' means they are queued/published.
+                new_status = "published" if decision == "approve" else "rejected"
+                await update_content_status(content_ids, new_status)
+                
+        # If approved, we could theoretically still trigger an event_dispatcher cascade
+        # here if we wanted OTHER agents to react to the fact that content was published.
+        # But for the content itself, the database status is already updated!
 
     return {
         "status": "success",

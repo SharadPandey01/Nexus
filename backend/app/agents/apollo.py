@@ -23,7 +23,7 @@ import uuid
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from app.utils.llm import get_gemini_llm, call_llm_with_retry
 from app.config import settings
 from app.state.state_manager import state_manager
 
@@ -165,16 +165,10 @@ Generate platform-appropriate content. **CRITICAL: Generate EXACTLY 1 content pi
 
     # ---- Call the LLM ----
     try:
-        llm = ChatGoogleGenerativeAI(
-            model=settings.LLM_MODEL,
-            api_key=settings.GEMINI_API_KEY,
-            temperature=0.7,  # Higher temperature for creative content
-        )
-
-        response = await llm.ainvoke([
+        response = await call_llm_with_retry([
             {"role": "system", "content": APOLLO_SYSTEM_PROMPT},
             {"role": "human", "content": user_message},
-        ])
+        ], temperature=0.7)
 
         # ---- Parse the LLM response ----
         raw_text = response.content.strip()
@@ -192,12 +186,20 @@ Generate platform-appropriate content. **CRITICAL: Generate EXACTLY 1 content pi
 
         parsed = json.loads(raw_text)
 
-        # ---- Build the structured output ----
+        # ---- Build structured output & persist to database ----
+        from app.repository import insert_content
+        event = state_manager.get_event()
+        event_id = event.get("id", "default") if event else "default"
+        
         content_pieces = []
+        content_ids = []
         for i, piece in enumerate(parsed.get("content_pieces", [])):
-            content_id = f"content_{uuid.uuid4().hex[:8]}"
+            cid = f"content_{uuid.uuid4().hex[:8]}"
+            content_ids.append(cid)
+            
             content_piece = {
-                "id": content_id,
+                "id": cid,
+                "content_type": "social_post",
                 "platform": piece.get("platform", "twitter"),
                 "tone": piece.get("tone", "professional"),
                 "text": piece.get("text", ""),
@@ -212,13 +214,9 @@ Generate platform-appropriate content. **CRITICAL: Generate EXACTLY 1 content pi
             # Add to the state manager's content queue
             state_manager.add_content(content_piece)
 
-            # ---- Persist to database ----
-            from app.repository import insert_content
-            event = state_manager.get_event()
-            event_id = event.get("id", "default") if event else "default"
             try:
                 await insert_content(event_id, {
-                    "id": content_id,
+                    "id": cid,
                     "content_type": "social_post",
                     "platform": piece.get("platform"),
                     "title": piece.get("text", "")[:60],
@@ -229,7 +227,7 @@ Generate platform-appropriate content. **CRITICAL: Generate EXACTLY 1 content pi
                     "reasoning": parsed.get("reasoning", ""),
                 })
             except Exception as db_err:
-                print(f"[Apollo] DB insert for content '{content_id}' failed: {db_err}")
+                print(f"[Apollo] DB insert for content '{cid}' failed: {db_err}")
 
         # Campaign timeline
         campaign = parsed.get("campaign_timeline", {})
@@ -262,6 +260,7 @@ Generate platform-appropriate content. **CRITICAL: Generate EXACTLY 1 content pi
                     "platforms": list(set(p["platform"] for p in content_pieces)),
                     "piece_count": len(content_pieces),
                     "first_piece": content_pieces[0]["text"][:100] if content_pieces else "",
+                    "content_ids": content_ids,
                 },
             }
         ]

@@ -58,8 +58,8 @@ let isFetchingAthena = false;
 // ═══════════════════════════════════════════════════════════
 
 const AthenaConsole = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(cachedAthenaData);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [reasoningOpen, setReasoningOpen] = useState(false);
 
@@ -110,8 +110,12 @@ const AthenaConsole = () => {
     }
   }, []);
 
-  // Fetch on mount (will use cache if available)
-  useEffect(() => { fetchAnalytics(); }, [fetchAnalytics]);
+  // Only restore from cache on mount — never auto-call LLM
+  useEffect(() => {
+    if (cachedAthenaData) {
+      setData(cachedAthenaData);
+    }
+  }, []);
 
   // ── Ask Athena handler ──────────────────────────────────
   const handleAsk = async (e) => {

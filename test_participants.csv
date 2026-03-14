@@ -1,0 +1,11 @@
+name,email,role,organization,track
+"Yash Pandey","yash@nexus.local","organizer","Nexus Global Tech","all"
+"Sarah Chen","sarah.chen@ai-innovations.com","speaker","AI Innovations","Agents"
+"John Doe","john@example.com","attendee","Acme Corp","Compute"
+"Jane Smith","jane.smith@quantum-ai.net","vip","Quantum AI","Agents"
+"Michael Johnson","michael.j@startuphub.com","attendee","Startup Hub","Compute"
+"Emily Davis","emily.davis@tech-vc.com","vip","Tech VC Partners","all"
+"David Wilson","david.w@university.edu","speaker","University AI Lab","Ethical AI"
+"Christopher Moore","c.moore@cloudscale.io","attendee","CloudScale","Compute"
+"Amanda White","amanda.white@data-ethics.org","speaker","Data Ethics Org","Ethical AI"
+"Matthew Taylor","matt.t@robotics.co","attendee","Robotics Co","Agents"

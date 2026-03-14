@@ -18,7 +18,7 @@ import json
 from datetime import datetime
 from typing import Optional, Dict, Any
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from app.utils.llm import get_gemini_llm, call_llm_with_retry
 from app.config import settings
 
 
@@ -71,16 +71,10 @@ async def parse_event_from_prompt(prompt: str) -> Dict[str, Any]:
 Respond with ONLY the JSON object."""
 
     try:
-        llm = ChatGoogleGenerativeAI(
-            model=settings.LLM_MODEL,
-            api_key=settings.GEMINI_API_KEY,
-            temperature=0.1,  # Very low — we want deterministic extraction
-        )
-
-        response = await llm.ainvoke([
+        response = await call_llm_with_retry([
             {"role": "system", "content": EVENT_PARSER_SYSTEM_PROMPT},
             {"role": "human", "content": user_message},
-        ])
+        ], temperature=0.1)
 
         raw_text = response.content.strip()
 

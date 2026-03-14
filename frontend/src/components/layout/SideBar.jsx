@@ -23,11 +23,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     );
 
     const navItems = [
-        { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { path: '/dashboard/newEvent', icon: FaPlusIcon, label: 'New Event' },
+        { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { path: '/dashboard/schedule', icon: Calendar, label: 'Schedule' },
-        { path: '/dashboard/finance', icon: Briefcase, label: 'Finance' },
-        { path: '/dashboard/athena', icon: BrainCircuit, label: 'Analytics' },
         { path: '/dashboard/activity', icon: Activity, label: 'Agent Activity' },
     ];
 
