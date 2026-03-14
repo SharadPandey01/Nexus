@@ -56,6 +56,21 @@ async def get_all_events() -> List[dict]:
     return [dict(row) for row in await cursor.fetchall()]
 
 
+async def update_event_config(event_id: str, new_config: dict) -> None:
+    """
+    Updates ONLY the config_json column for a given event ID.
+    Useful for persisting agent data like Fortuna's budget without
+    overwriting the core event details.
+    """
+    db = await get_db()
+    now = datetime.now().isoformat()
+    await db.execute(
+        "UPDATE events SET config_json = ?, updated_at = ? WHERE id = ?",
+        (json.dumps(new_config), now, event_id)
+    )
+    await db.commit()
+
+
 # ============================================================================
 # PARTICIPANTS
 # ============================================================================

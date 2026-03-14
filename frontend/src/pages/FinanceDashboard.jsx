@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { invokeAgents } from '../services/api';
+import { invokeAgents, getFinance } from '../services/api';
 import {
   DollarSign, TrendingUp, TrendingDown, Handshake, AlertCircle,
   RefreshCw, Wallet, ShieldAlert, Sparkles, BadgeDollarSign,
@@ -58,6 +58,19 @@ const FinanceDashboardContent = () => {
     isFetchingFortuna = true;
 
     try {
+      if (!force) {
+        // Try the fast cache path first
+        const cacheRes = await getFinance();
+        if (cacheRes?.finance_output) {
+          setData(cacheRes.finance_output);
+          cachedFortunaData = cacheRes.finance_output;
+          setLoading(false);
+          isFetchingFortuna = false;
+          return;
+        }
+      }
+
+      // If force=true or cache was empty, invoke the LLM
       const res = await invokeAgents(
         'Provide a full financial overview for the current event. Include budget tracking with line items, spending alerts, sponsorship targets, and cost analysis.',
         'finance'
@@ -76,7 +89,7 @@ const FinanceDashboardContent = () => {
     }
   };
 
-  useEffect(() => { fetchFinance(); }, []);
+  useEffect(() => { fetchFinance(false); }, []);
 
   const handleRefresh = () => {
     setRefreshing(true);

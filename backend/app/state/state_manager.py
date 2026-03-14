@@ -61,6 +61,10 @@ class StateManager:
             # Generated content awaiting approval
             "content_queue": [],  # List of content piece dicts
 
+            # ---- Finance Data ----
+            # Fortuna's most recently generated budget analysis
+            "finance_data": None,  # Dictionary containing the financial overview
+
             # ---- Agent Status ----
             # Current status of each agent (idle, working, done, error)
             "agent_status": {
@@ -113,6 +117,11 @@ class StateManager:
         """Get the current content queue."""
         self._check_initialized()
         return self._state.get("content_queue", [])
+
+    def get_finance_data(self) -> Optional[Dict]:
+        """Get the current finance data."""
+        self._check_initialized()
+        return self._state.get("finance_data")
 
     def get_agent_status(self, agent_name: str) -> Dict:
         """Get the current status of a specific agent."""
@@ -167,6 +176,11 @@ class StateManager:
         """Add a single content piece to the queue."""
         self._check_initialized()
         self._state["content_queue"].append(content_piece)
+
+    def set_finance_data(self, data: Dict):
+        """Replace the current finance data structure."""
+        self._check_initialized()
+        self._state["finance_data"] = data
 
     def update_agent_status(self, agent_name: str, status: str, task: str = None):
         """

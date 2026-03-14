@@ -31,6 +31,7 @@ export const handleApproval = (id, action) =>
     method: 'POST',
   });
 export const getInsights = () => request('/insights');
+export const getFinance = () => request('/finance');
 
 // ── Schedule ─────────────────────────────────────────────
 export const getSessions = () => request('/schedule/sessions');

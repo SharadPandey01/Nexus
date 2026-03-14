@@ -104,6 +104,7 @@ async def create_event(request: CreateEventRequest):
     await db.commit()
 
     # ---- Step 4: Update in-memory state ----
+    state_manager.initialize()
     state_manager.set_event(event)
 
     # ---- Step 5: Log the activity ----
@@ -181,6 +182,14 @@ async def activate_event(event_id: str):
     # 2. Load the event
     state_manager.set_event(event)
     
+    # 2.5 Load specific config data (like Fortuna's finance_data)
+    try:
+        config_data = json.loads(event.get("config_json", "{}"))
+        if "finance_data" in config_data:
+            state_manager.set_finance_data(config_data["finance_data"])
+    except json.JSONDecodeError:
+        pass
+        
     # 3. Load all related data
     try:
         participants = await get_participants(event_id)

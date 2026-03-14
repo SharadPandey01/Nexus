@@ -145,6 +145,9 @@ async def fortuna_agent(state: dict) -> dict:
     participants = state.get("participants", [])
     schedule = state.get("schedule", [])
     pending_tasks = state.get("pending_tasks", [])
+    
+    # Retrieve existing finance data to prevent output flapping
+    existing_finance = state_manager.get_finance_data()
 
     # ---- Build context for the LLM ----
     event_name = event.get("name", "TechFest 2026") if event else "TechFest 2026"
@@ -176,8 +179,14 @@ async def fortuna_agent(state: dict) -> dict:
         if roles:
             demo_context += f" Role breakdown: {json.dumps(roles)}"
 
-    # Schedule summary for cost estimation
-    schedule_summary = f"{len(schedule)} sessions scheduled." if schedule else "No schedule data."
+    # Add existing finance context if available
+    finance_context = ""
+    if existing_finance:
+        finance_context = (
+            f"\n\n**PREVIOUS FINANCIAL STATE**: {json.dumps(existing_finance, default=str)}\n"
+            "CRITICAL INSTRUCTION: You MUST use the figures, categories, and sponsors from the PREVIOUS FINANCIAL STATE as your baseline. "
+            "Do NOT invent new random numbers, change the total budget, or replace the sponsor targets unless the Organizer's Request or Cascade Request explicitly demands a change or recalculation."
+        )
 
     # Build the user message
     user_message = f"""Analyze the finances and sponsorship opportunities for:
@@ -189,6 +198,7 @@ async def fortuna_agent(state: dict) -> dict:
 
 **Organizer's Request:** {user_input}
 {cascade_context}
+{finance_context}
 
 Provide a comprehensive financial overview with budget tracking, spending alerts, and sponsorship recommendations. Respond with ONLY the JSON object as specified."""
 
@@ -258,7 +268,7 @@ Provide a comprehensive financial overview with budget tracking, spending alerts
         reasoning = parsed.get("reasoning", "Financial analysis completed by Fortuna.")
 
         # ---- Persist financial analysis to database ----
-        from app.repository import insert_agent_log
+        from app.repository import insert_agent_log, get_event_by_id, update_event_config
         event = state_manager.get_event()
         event_id = event.get("id", "default") if event else "default"
         try:
@@ -269,8 +279,26 @@ Provide a comprehensive financial overview with budget tracking, spending alerts
                 "details": f"Budget: ${total_budget:,.0f}, Spent: ${total_spent:,.0f}, Remaining: ${remaining_balance:,.0f}, Sponsors: {len(sponsor_targets)}",
                 "reasoning": reasoning,
             })
+            
+            # Persist budget to the event's config_json so it survives server restarts
+            if event_id != "default":
+                db_event = await get_event_by_id(event_id)
+                if db_event:
+                    current_config = json.loads(db_event.get("config_json", "{}"))
+                    current_config["finance_data"] = {
+                        "total_budget": total_budget,
+                        "total_spent": total_spent,
+                        "remaining_balance": remaining_balance,
+                        "spending_velocity": parsed.get("spending_velocity", ""),
+                        "line_items": line_items,
+                        "alerts": alerts,
+                        "sponsor_targets": sponsor_targets,
+                        "reasoning": reasoning
+                    }
+                    await update_event_config(event_id, current_config)
+                    
         except Exception as db_err:
-            print(f"[Fortuna] DB log insert failed: {db_err}")
+            print(f"[Fortuna] DB log/persistence insert failed: {db_err}")
 
         # ---- Build approval items ----
         approval_items = []
@@ -299,21 +327,27 @@ Provide a comprehensive financial overview with budget tracking, spending alerts
                 },
             })
 
+        # Build final output package
+        finance_output = {
+            "total_budget": total_budget,
+            "total_spent": total_spent,
+            "remaining_balance": remaining_balance,
+            "spending_velocity": parsed.get("spending_velocity", ""),
+            "line_items": line_items,
+            "alerts": alerts,
+            "sponsor_targets": sponsor_targets,
+            "cost_impact": cost_impact,
+            "cascade_to": cascade_to,
+            "requires_approval": needs_approval,
+            "approval_items": approval_items,
+            "reasoning": reasoning,
+        }
+
+        # Cache it in the state manager so it persists and doesn't flap on refresh
+        state_manager.set_finance_data(finance_output)
+
         return {
-            "finance_output": {
-                "total_budget": total_budget,
-                "total_spent": total_spent,
-                "remaining_balance": remaining_balance,
-                "spending_velocity": parsed.get("spending_velocity", ""),
-                "line_items": line_items,
-                "alerts": alerts,
-                "sponsor_targets": sponsor_targets,
-                "cost_impact": cost_impact,
-                "cascade_to": cascade_to,
-                "requires_approval": needs_approval,
-                "approval_items": approval_items,
-                "reasoning": reasoning,
-            },
+            "finance_output": finance_output,
         }
 
     except json.JSONDecodeError as e:
