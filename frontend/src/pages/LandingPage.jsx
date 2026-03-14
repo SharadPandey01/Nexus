@@ -205,27 +205,79 @@ const LandingPage = () => {
 
       {/* ── Hero ── */}
       <section className="relative h-screen flex items-center justify-center px-6 bg-transparent overflow-hidden">
+        {/* Warp background */}
         <div className="absolute inset-0 z-0">
           <WarpBackground />
         </div>
+
+        {/* Ambient glow */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
           <div className="absolute top-1/2 left-1/2
             -translate-x-1/2 -translate-y-1/2
-            w-[800px] h-[800px]
-            bg-primary/20 rounded-full
-            blur-[120px] opacity-40" />
+            w-[900px] h-[900px]
+            bg-primary/15 rounded-full
+            blur-[140px] opacity-50" />
         </div>
-        <div className="max-w-5xl mx-auto text-center relative z-10 animate-fade-up">
-          <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-8 leading-tight drop-shadow-lg">
-            AI-Powered <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">
-              Event Orchestration
+
+        {/* Hero content */}
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+
+          {/* Eyebrow badge */}
+          
+
+          {/* NEXUS wordmark */}
+          <h1
+            className="animate-fade-up leading-none mb-5"
+            style={{ animationDelay: '80ms' }}
+          >
+            <span
+              className="block text-[clamp(5rem,16vw,11rem)] font-extrabold
+                tracking-[0.12em] text-transparent
+                bg-clip-text
+                bg-gradient-to-b from-white via-white/90 to-white/40
+                drop-shadow-[0_0_80px_rgba(59,130,246,0.25)]
+                select-none"
+            >
+              NEXUS
             </span>
           </h1>
-          <p className="text-lg md:text-xl text-text-secondary max-w-2xl mx-auto mb-10 leading-relaxed">
-            Autonomous AI swarms: Event management on autopilot.
+
+          {/* Divider line with glow */}
+          <div
+            className="flex items-center justify-center gap-4 mb-7 animate-fade-up"
+            style={{ animationDelay: '160ms' }}
+          >
+            <div className="h-px w-24 bg-gradient-to-r from-transparent to-primary/60" />
+            <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+            <div className="h-px w-24 bg-gradient-to-l from-transparent to-primary/60" />
+          </div>
+
+          {/* Subtitle */}
+          <p
+            className="text-xl md:text-2xl font-semibold tracking-widest
+              text-transparent bg-clip-text
+              bg-gradient-to-r from-primary via-blue-300 to-primary
+              uppercase mb-5 animate-fade-up"
+            style={{ animationDelay: '200ms' }}
+          >
+            AI-Powered Event Orchestration
           </p>
+
+          {/* Description */}
+          <p
+            className="text-base md:text-lg text-text-secondary max-w-xl mx-auto
+              mb-10 leading-relaxed animate-fade-up"
+            style={{ animationDelay: '260ms' }}
+          >
+            Autonomous AI swarms that plan, communicate, and execute your entire event — on autopilot.
+          </p>
+
+          
         </div>
+
+        {/* Bottom fade into next section */}
+        <div className="absolute bottom-0 left-0 right-0 h-32
+          bg-gradient-to-t from-black to-transparent pointer-events-none z-10" />
       </section>
 
       {/* ── Stats ── */}
@@ -251,8 +303,8 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ── Agent Carousel (replaces old 3-card grid) ── */}
-      <section ref={featuresRef} className="py-24 px-6 relative z-10 bg-[#020202]">
+      {/* ── Agent Carousel ── */}
+      <section id="agents" ref={featuresRef} className="py-24 px-6 relative z-10 bg-[#020202]">
         <div className="max-w-7xl mx-auto flex flex-col items-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 text-center tracking-tight">
             Meet Your Autonomous Swarm

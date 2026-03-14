@@ -29,7 +29,7 @@ const NewEvent = () => {
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
-      recognition.interimResults = false; // Only get final results
+      recognition.interimResults = false;
 
       recognition.onresult = (event) => {
         let newTranscript = '';
@@ -61,14 +61,14 @@ const NewEvent = () => {
 
   // ── Backend integration state ──────────────────────────
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionPhase, setSubmissionPhase] = useState('idle'); // idle | creating | uploading | invoking | done | error
+  const [submissionPhase, setSubmissionPhase] = useState('idle');
   const [error, setError] = useState('');
 
   const agents = [
     {
       name: 'Schedule',
-      agentKey: 'chronos',
       persona: 'Chronos',
+      agentKey: 'chronos',
       icon: Calendar,
       path: '/dashboard/schedule',
       color: 'text-emerald-400',
@@ -79,6 +79,7 @@ const NewEvent = () => {
     },
     {
       name: 'Mailing',
+      persona: 'Hermes',
       agentKey: 'hermes',
       icon: Mail,
       path: '/dashboard/mail',
@@ -90,6 +91,7 @@ const NewEvent = () => {
     },
     {
       name: 'Content',
+      persona: 'Apollo',
       agentKey: 'apollo',
       icon: PenTool,
       path: '/dashboard/content',
@@ -101,6 +103,7 @@ const NewEvent = () => {
     },
     {
       name: 'Analytics',
+      persona: 'Athena',
       agentKey: 'athena',
       icon: BarChart,
       path: '/dashboard/athena',
@@ -112,6 +115,7 @@ const NewEvent = () => {
     },
     {
       name: 'Budget',
+      persona: 'Fortuna',
       agentKey: 'fortuna',
       icon: Wallet,
       path: '/dashboard/finance',
@@ -126,7 +130,6 @@ const NewEvent = () => {
   // ── Live agent statuses ────────────────────────────────
   const [agentStatuses, setAgentStatuses] = useState({});
 
-  // Fetch agent statuses on mount
   useEffect(() => {
     const fetchStatuses = async () => {
       try {
@@ -143,7 +146,6 @@ const NewEvent = () => {
 
   // ── WebSocket for real-time agent updates ──────────────
   const handleWsMessage = useCallback((msg) => {
-    // Handle agent_status updates
     if (msg.type === 'agent_status' && msg.agent) {
       setAgentStatuses((prev) => ({
         ...prev,
@@ -153,7 +155,6 @@ const NewEvent = () => {
         },
       }));
     }
-    // Handle agent_complete updates
     if (msg.type === 'agent_complete' && msg.agent) {
       setAgentStatuses((prev) => ({
         ...prev,
@@ -163,7 +164,6 @@ const NewEvent = () => {
         },
       }));
     }
-    // Handle error updates
     if (msg.type === 'error' && msg.agent) {
       setAgentStatuses((prev) => ({
         ...prev,
@@ -212,7 +212,7 @@ const NewEvent = () => {
       setError('Voice recognition is not supported in your browser. Please try Chrome or Edge.');
       return;
     }
-    
+
     if (isListening) {
       recognitionRef.current.stop();
     } else {
@@ -225,7 +225,7 @@ const NewEvent = () => {
     }
   };
 
-  // ── Submit: Create Event → Upload Files → Invoke Agents ──
+  // ── Submit ─────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!prompt.trim()) return;
 
@@ -233,13 +233,10 @@ const NewEvent = () => {
     setError('');
 
     try {
-      // Phase 1: Create the event (LLM parses structured details from prompt)
       setSubmissionPhase('creating');
       const eventResult = await createEvent(prompt.trim());
-
       const eventId = eventResult?.event?.id;
 
-      // Phase 2: Upload attached files (CSV/Excel only)
       if (files.length > 0) {
         setSubmissionPhase('uploading');
         const uploadableFiles = files.filter((f) => {
@@ -252,16 +249,13 @@ const NewEvent = () => {
             await uploadEventFile(file);
           } catch (uploadErr) {
             console.warn(`[NewEvent] File upload failed for ${file.name}:`, uploadErr.message);
-            // Continue with other files — don't block the flow
           }
         }
       }
 
-      // Phase 3: Invoke the AI orchestrator
       setSubmissionPhase('invoking');
       await invokeAgents(prompt.trim(), null, eventId);
 
-      // Phase 4: Success — navigate to dashboard
       setSubmissionPhase('done');
       navigate('/dashboard');
 
@@ -274,7 +268,6 @@ const NewEvent = () => {
     }
   };
 
-  // ── Phase label for the Start button ───────────────────
   const getButtonLabel = () => {
     switch (submissionPhase) {
       case 'creating': return 'Creating Event…';
@@ -296,14 +289,12 @@ const NewEvent = () => {
           <p className="text-slate-400 text-lg font-light">
             Describe your vision and let your swarm handle the logistics.
           </p>
-          {/* WebSocket status indicator */}
           <div className="flex items-center justify-center gap-2 text-xs text-slate-500">
             <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-red-400'}`} />
             {isConnected ? 'Live' : 'Offline'}
           </div>
         </header>
 
-        {/* Error display */}
         {error && (
           <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-300 text-sm flex items-center justify-between">
             <span>{error}</span>
@@ -328,7 +319,6 @@ const NewEvent = () => {
         )}
 
         <div className="relative group">
-          {/* Outer glow for prompt box */}
           <div className="absolute inset-0 bg-blue-500/5 blur-3xl group-focus-within:bg-blue-500/15 transition-all duration-700" />
 
           <div className="relative bg-gradient-to-br from-white/[0.08] to-transparent backdrop-blur-2xl border border-white/[0.1] rounded-3xl shadow-2xl overflow-hidden group-focus-within:border-white/[0.2] transition-all">
@@ -414,7 +404,7 @@ const NewEvent = () => {
                   hover:border-white/[0.2] ${agent.glow} overflow-hidden animate-fade-up`}
                 style={{ animationDelay: `${200 + i * 80}ms` }}
               >
-                {/* THE GLOW FLARE */}
+                {/* Glow flare */}
                 <div className={`absolute -inset-px bg-gradient-to-br ${agent.flare} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10`} />
 
                 {/* Top Right Status Alert */}
@@ -433,9 +423,15 @@ const NewEvent = () => {
                   <agent.icon className={`w-6 h-6 ${agent.color} filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]`} />
                 </div>
 
+                {/* Title */}
                 <h4 className="text-xl font-bold text-white mb-1">
                   {agent.name}
                 </h4>
+
+                {/* Agent persona name */}
+                <div className={`text-xs font-black ${agent.color} uppercase tracking-[0.2em]`}>
+                  {agent.persona}
+                </div>
 
                 {/* Decorative Corner Light */}
                 <div className="absolute top-0 right-0 w-16 h-16 bg-white/[0.02] blur-xl pointer-events-none" />
