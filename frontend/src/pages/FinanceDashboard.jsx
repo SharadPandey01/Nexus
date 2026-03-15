@@ -143,17 +143,17 @@ const FinanceDashboardContent = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(250,204,21,0.06),transparent)]" />
         <div className="absolute top-0 right-0 w-16 h-16 bg-white/[0.02] blur-xl pointer-events-none" />
 
-        <div className="relative z-10 flex items-center justify-between">
-          <div className="flex items-center gap-5">
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
+          <div className="flex items-center gap-4 sm:gap-5">
             <div className="relative">
-              <div className="w-14 h-14 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center">
-                <CircleDollarSign className="text-yellow-400 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" size={28} />
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center">
+                <CircleDollarSign className="text-yellow-400 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)] w-6 h-6 sm:w-7 sm:h-7" />
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#020202] animate-pulse" />
             </div>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-white mb-0.5">FORTUNA</h1>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-yellow-400 opacity-70">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-0.5">FORTUNA</h1>
+              <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-yellow-400 opacity-70">
                 Finance & Sponsorship Intelligence
               </p>
             </div>
@@ -162,7 +162,7 @@ const FinanceDashboardContent = () => {
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold uppercase tracking-wider transition-all duration-200
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold uppercase tracking-wider transition-all duration-200 w-full sm:w-auto justify-center
               bg-gradient-to-br from-white/[0.05] to-transparent backdrop-blur-2xl
               border shadow-lg shadow-yellow-500/10
               ${refreshing

@@ -197,19 +197,19 @@ const AthenaConsole = () => {
       {/* ─── HERO HEADER ─────────────────────────────────── */}
       <header className="relative overflow-hidden rounded-2xl border border-orange-500/20 bg-gradient-to-br from-orange-500/[0.06] via-black/60 to-emerald-500/[0.04]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(251,146,60,0.12),transparent)]" />
-        <div className="relative z-10 px-8 py-8 flex items-center justify-between">
-          <div className="flex items-center gap-5">
+        <div className="relative z-10 px-6 sm:px-8 py-6 sm:py-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
+          <div className="flex items-center gap-4 sm:gap-5">
             <div className="relative">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500/30 to-amber-600/20 flex items-center justify-center border border-orange-500/30 shadow-[0_0_30px_rgba(251,146,60,0.15)]">
-                <BrainCircuit className="text-orange-400" size={28} />
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-orange-500/30 to-amber-600/20 flex items-center justify-center border border-orange-500/30 shadow-[0_0_30px_rgba(251,146,60,0.15)]">
+                <BrainCircuit className="text-orange-400 w-6 h-6 sm:w-7 sm:h-7" />
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-black animate-pulse" />
             </div>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-white">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
                 ATHENA
               </h1>
-              <p className="text-sm text-slate-400 mt-0.5 flex items-center gap-2">
+              <p className="text-xs sm:text-sm text-slate-400 mt-0.5 flex items-center gap-2">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 Real-Time Intelligence Engine
               </p>
@@ -219,7 +219,7 @@ const AthenaConsole = () => {
           <button
             onClick={() => fetchAnalytics(true)}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] text-sm text-slate-300 hover:bg-white/[0.08] hover:text-white transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] text-sm text-slate-300 hover:bg-white/[0.08] hover:text-white transition-all disabled:opacity-50 w-full sm:w-auto justify-center"
           >
             <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
             {loading ? 'Analyzing…' : 'Re-Analyze'}

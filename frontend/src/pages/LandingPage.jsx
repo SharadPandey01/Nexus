@@ -358,15 +358,15 @@ const LandingPage = () => {
                 {[0, 120, 240].map((degree, i) => (
                   <div
                     key={i}
-                    className="absolute w-16 h-16 rounded-xl border border-white/20 bg-black/50 backdrop-blur-md flex items-center justify-center"
+                    className="absolute w-12 h-12 md:w-16 md:h-16 rounded-xl border border-white/20 bg-black/50 backdrop-blur-md flex items-center justify-center hidden sm:flex"
                     style={{ transform: `rotate(${degree}deg) translateY(-140px) rotate(-${degree}deg)` }}
                   >
-                    <Bot className="w-6 h-6 text-white/40" />
+                    <Bot className="w-5 h-5 md:w-6 md:h-6 text-white/40" />
                     <div className="absolute inset-0 border-t-2 border-primary/40 rounded-xl animate-spin-slow" />
                   </div>
                 ))}
-                <div className="absolute w-64 h-64 border border-white/5 rounded-full animate-spin-slow" />
-                <div className="absolute w-[350px] h-[350px] border border-white/5 rounded-full animate-reverse-spin" />
+                <div className="absolute w-[60%] h-[60%] max-w-[256px] max-h-[256px] border border-white/5 rounded-full animate-spin-slow" />
+                <div className="absolute w-[80%] h-[80%] max-w-[350px] max-h-[350px] border border-white/5 rounded-full animate-reverse-spin" />
               </div>
             </div>
           </div>

@@ -90,7 +90,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     }, []);
 
     return (
-        <aside className={`border-r border-white/10 bg-white/[0.02] backdrop-blur-xl h-full flex flex-col transition-all duration-300 ease-in-out z-50 ${isOpen ? 'w-64' : 'w-[70px]'}`}>
+        <aside className={`border-r border-white/10 bg-black/90 backdrop-blur-xl h-full flex flex-col transition-all duration-300 ease-in-out z-50 absolute md:relative ${isOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-[70px]'}`}>
 
             {/* Header */}
             <div className={`p-6 flex items-center ${isOpen ? 'justify-between' : 'justify-center'} h-24`}>
@@ -101,7 +101,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 )}
                 <button
                     onClick={toggleSidebar}
-                    className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all"
+                    className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all hidden md:block"
                 >
                     {isOpen ? <ChevronLeft size={20} /> : <Menu size={20} />}
                 </button>

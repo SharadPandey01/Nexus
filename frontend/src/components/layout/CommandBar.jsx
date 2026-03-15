@@ -3,7 +3,7 @@ import { Search, Bell, User, Send, Loader2, Cpu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { sendChat } from '../../services/api';
 
-const CommandBar = () => {
+const CommandBar = ({ toggleSidebar }) => {
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [response, setResponse] = useState(null);
@@ -47,31 +47,41 @@ const CommandBar = () => {
 
     return (
         <>
-            <header className="h-16 border-b border-white/10 glass-card !rounded-none !shadow-none !border-x-0 !border-t-0 flex items-center justify-between px-6 sticky top-0 z-10 w-full">
-                <form onSubmit={handleSubmit} className="flex-1 max-w-2xl relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        {loading ? <Loader2 size={18} className="text-primary animate-spin" /> : <Search size={18} className="text-gray-500" />}
-                    </div>
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        value={input}
-                        onChange={e => setInput(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Command Nexus (e.g. 'Add a surprise keynote by the CEO to Day 2')"
-                        className="w-full bg-black/40 border border-white/10 rounded-lg pl-10 pr-20 py-2 text-sm text-text-primary focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/30 transition-all placeholder-gray-500"
-                    />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center gap-2">
-                        {input.trim() && (
-                            <button type="submit" className="text-primary hover:text-white transition-colors">
-                                <Send size={14} />
-                            </button>
-                        )}
-                        <span className="text-xs text-gray-500 font-mono bg-gray-800 px-1.5 py-0.5 rounded border border-gray-700">⌘K</span>
-                    </div>
-                </form>
+            <header className="h-16 border-b border-white/10 glass-card !rounded-none !shadow-none !border-x-0 !border-t-0 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10 w-full gap-2 sm:gap-4">
+                <div className="flex items-center flex-1 max-w-2xl">
+                    <button 
+                        onClick={toggleSidebar}
+                        className="md:hidden p-2 -ml-2 mr-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+                        aria-label="Toggle Sidebar"
+                    >
+                        <User size={20} className="hidden" /> {/* Placeholder - using lucide-react standard Menu icon imported below via Sidebar but here we can just use an SVG or similar, but actually let's import Menu from lucide-react. Ah wait, CommandBar already imports Search, Bell, User, Send, Loader2, Cpu... I will just import Menu. */}
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg>
+                    </button>
+                    <form onSubmit={handleSubmit} className="flex-1 relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            {loading ? <Loader2 size={18} className="text-primary animate-spin" /> : <Search size={18} className="text-gray-500" />}
+                        </div>
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={input}
+                            onChange={e => setInput(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Command Nexus (e.g. 'Add a surprise keynote by the CEO to Day 2')"
+                            className="w-full bg-black/40 border border-white/10 rounded-lg pl-10 pr-20 py-2 text-sm text-text-primary focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/30 transition-all placeholder-gray-500"
+                        />
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center gap-2">
+                            {input.trim() && (
+                                <button type="submit" className="text-primary hover:text-white transition-colors">
+                                    <Send size={14} />
+                                </button>
+                            )}
+                            <span className="text-xs text-gray-500 font-mono bg-gray-800 px-1.5 py-0.5 rounded border border-gray-700 hidden sm:inline-block">⌘K</span>
+                        </div>
+                    </form>
+                </div>
 
-                <div className="flex items-center space-x-4 ml-6">
+                <div className="flex items-center space-x-2 sm:space-x-4 ml-2 sm:ml-6">
                     <Link to="/dashboard/approvals" className="relative p-2 text-text-secondary hover:text-white transition-colors" title="Pending Approvals">
                         <Bell size={20} />
                         <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full animate-pulse"></span>
